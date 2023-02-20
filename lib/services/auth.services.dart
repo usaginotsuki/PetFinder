@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'dart:developer' as dev;
 
 import 'package:google_sign_in/google_sign_in.dart';
@@ -12,20 +13,19 @@ class AuthServices {
     ],
   );
 
-  signUpWithEmail(String email, String password) async {
+  signUpWithEmail(String email, String password, BuildContext context) async {
     try {
       dev.log(email.toString());
       dev.log(password.toString());
       var credential = await auth.createUserWithEmailAndPassword(
           email: email, password: password);
-
       dev.log(credential.toString());
     } catch (e) {
       dev.log(e.toString());
     }
   }
 
-  loginWithEmail(String email, String password) async {
+  loginWithEmail(String email, String password, BuildContext context) async {
     try {
       var credential = await auth.signInWithEmailAndPassword(
           email: email, password: password);
@@ -35,7 +35,7 @@ class AuthServices {
     }
   }
 
-  loginWithGoogle() async {
+  loginWithGoogle(BuildContext context) async {
     final GoogleSignIn googleSignIn = GoogleSignIn();
     final GoogleSignInAccount? googleSignInAccount =
         await googleSignIn.signIn();
@@ -51,16 +51,13 @@ class AuthServices {
       try {
         final UserCredential userCredential =
             await auth.signInWithCredential(credential);
+        
 
         dev.log(userCredential.toString());
       } on FirebaseAuthException catch (e) {
-        if (e.code == 'account-exists-with-different-credential') {
-          // handle the error here
-        } else if (e.code == 'invalid-credential') {
-          // handle the error here
-        }
+        
       } catch (e) {
-        // handle the error here
+       
       }
     }
   }

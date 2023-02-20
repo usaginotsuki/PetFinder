@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
+import 'package:pet_finder/services/user.services.dart';
 import 'dart:developer' as dev;
-
 import '../services/auth.services.dart';
 
 class LoginPage extends StatefulWidget {
@@ -15,53 +15,50 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   AuthServices auth = AuthServices();
+  UserServices user = UserServices();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inicio de sesión'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset('assets/gastos.jpg'),
-            const SizedBox(height: 40),
-            SignInButton(Buttons.Google, text: 'Iniciar con Google',
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset('assets/gastos.jpg'),
+              const SizedBox(height: 40),
+              SignInButton(Buttons.Google, text: 'Iniciar con Google',
+                  onPressed: () {
+                dev.log("Iniciar con Google");
+                auth.loginWithGoogle(context);
+              }),
+              const SizedBox(height: 20),
+              SignInButton(
+                Buttons.Email,
+                text: 'Crear cuenta con correo',
                 onPressed: () {
-              dev.log("Iniciar con Google");
-              auth.loginWithGoogle();
-            }),
-            const SizedBox(height: 20),
-            SignInButton(
-              Buttons.Facebook,
-              text: 'Iniciar con Facebook',
-              onPressed: () {},
-            ),
-            const SizedBox(height: 20),
-            SignInButton(
-              Buttons.Email,
-              text: 'Crear cuenta con correo',
-              onPressed: () {
-                emailSignUp(context);
-              },
-            ),
-            SignInButton(
-              Buttons.Email,
-              text: 'Iniciar con correo',
-              onPressed: () {
-                emailSignIn(context);
-              },
-            ),
-            const SizedBox(height: 20),
-            SignInButton(
-              Buttons.Google,
-              text: 'Salir de Google',
-              onPressed: () {
-                auth.logoutGoogle();
-              },
-            ),
-          ],
+                  emailSignUp(context);
+                },
+              ),
+              SignInButton(
+                Buttons.Email,
+                text: 'Iniciar con correo',
+                onPressed: () {
+                  emailSignIn(context);
+                },
+              ),
+              SignInButton(
+                Buttons.Email,
+                text: 'Salir de Google',
+                onPressed: () {
+                  auth.logoutGoogle();
+                  user.checkUser();
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -69,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
 }
 
 emailSignUp(context) {
-  final _formKey = GlobalKey<FormState>();
+  final formKey = GlobalKey<FormState>();
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
   AuthServices auth = AuthServices();
@@ -79,14 +76,14 @@ emailSignUp(context) {
       builder: (context) {
         return AlertDialog(
           title: const Text(
-            'Email',
+            'Registro',
             textAlign: TextAlign.center,
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Form(
-                  key: _formKey,
+                  key: formKey,
                   child: Column(
                     children: [
                       const Text('Ingresa tu correo y contraseña'),
@@ -134,11 +131,11 @@ emailSignUp(context) {
             ),
             TextButton(
               onPressed: () {
-                if (_formKey.currentState!.validate()) {
+                if (formKey.currentState!.validate()) {
                   dev.log("Validado");
-                  auth.signUpWithEmail(email.text.trim(), password.text.trim());
+                  auth.signUpWithEmail(
+                      email.text.trim(), password.text.trim(), context);
                 }
-                //Navigator.of(context).pop();
               },
               child: const Text('Ok'),
             ),
@@ -148,7 +145,7 @@ emailSignUp(context) {
 }
 
 emailSignIn(context) {
-  final _formKey = GlobalKey<FormState>();
+  final formKey = GlobalKey<FormState>();
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
 
@@ -158,14 +155,14 @@ emailSignIn(context) {
       builder: (context) {
         return AlertDialog(
           title: const Text(
-            'Email',
+            'Login',
             textAlign: TextAlign.center,
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Form(
-                  key: _formKey,
+                  key: formKey,
                   child: Column(
                     children: [
                       const Text('Ingresa tu correo y contraseña'),
@@ -213,11 +210,11 @@ emailSignIn(context) {
             ),
             TextButton(
               onPressed: () {
-                if (_formKey.currentState!.validate()) {
+                if (formKey.currentState!.validate()) {
                   dev.log("Validado");
-                  auth.loginWithEmail(email.text.trim(), password.text.trim());
+                  auth.loginWithEmail(
+                      email.text.trim(), password.text.trim(), context);
                 }
-                //Navigator.of(context).pop();
               },
               child: const Text('Ok'),
             ),
