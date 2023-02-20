@@ -3,29 +3,41 @@ import 'dart:ffi';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class User {
+class UserData {
   final String id;
   final String name;
   final String email;
   final Timestamp creationTime;
   final String phoneNumber;
-  final Bool verification;
+  final String photoURL;
+  final bool verification;
 
-  const User(this.id, this.name, this.email, this.creationTime,
-      this.phoneNumber, this.verification);
+  const UserData(this.id, this.name, this.email, this.creationTime,
+      this.phoneNumber, this.photoURL, this.verification);
 
-  factory User.fromDocument(DocumentSnapshot doc) {
-    return User(doc['id'], doc['name'], doc['email'], doc['creationTime'],
-        doc['phoneNumber'], doc['verification']);
+  factory UserData.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+    SnapshotOptions? options,
+  ) {
+    final data = snapshot.data();
+    return UserData(
+        data?['id'],
+        data?['name'],
+        data?['email'],
+        data?['creationTime'],
+        data?['phoneNumber'],
+        data?['photoURL'],
+        data?['verification']);
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toFirestore() {
     return {
       'id': id,
       'name': name,
       'email': email,
       'creationTime': creationTime,
       'phoneNumber': phoneNumber,
+      'photoURL': photoURL,
       'verification': verification
     };
   }
