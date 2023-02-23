@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
+import 'package:pet_finder/pages/signup.page.dart';
 import 'package:pet_finder/services/user.services.dart';
 import 'dart:developer' as dev;
 import '../services/auth.services.dart';
@@ -29,6 +30,7 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               Image.asset('assets/gastos.jpg'),
               const SizedBox(height: 40),
+              const Padding(padding: EdgeInsets.only(top: 50)),
               SignInButton(Buttons.Google, text: 'Iniciar con Google',
                   onPressed: () {
                 dev.log("Iniciar con Google");
@@ -37,25 +39,17 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 20),
               SignInButton(
                 Buttons.Email,
-                text: 'Crear cuenta con correo',
-                onPressed: () {
-                  emailSignUp(context);
-                },
-              ),
-              SignInButton(
-                Buttons.Email,
                 text: 'Iniciar con correo',
                 onPressed: () {
                   emailSignIn(context);
                 },
               ),
-              SignInButton(
-                Buttons.Email,
-                text: 'Salir de Google',
+              const Padding(padding: EdgeInsets.only(top: 250)),
+              TextButton(
                 onPressed: () {
-                  auth.logoutGoogle();
-                  user.checkUser();
+                  emailSignUp(context);
                 },
+                child: const Text('Registrate'),
               ),
             ],
           ),
@@ -68,7 +62,6 @@ class _LoginPageState extends State<LoginPage> {
 emailSignUp(context) {
   final formKey = GlobalKey<FormState>();
   TextEditingController email = TextEditingController();
-  TextEditingController password = TextEditingController();
   AuthServices auth = AuthServices();
 
   return showDialog(
@@ -86,28 +79,12 @@ emailSignUp(context) {
                   key: formKey,
                   child: Column(
                     children: [
-                      const Text('Ingresa tu correo y contraseña'),
+                      const Text('Ingresa tu correo electrónico'),
                       TextFormField(
                         controller: email,
                         decoration: const InputDecoration(
                           icon: Icon(Icons.email),
                           labelText: 'Correo electrónico',
-                        ),
-                        onChanged: (value) {},
-                        // The validator receives the text that the user has entered.
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor ingresa tu correo';
-                          }
-                          return null;
-                        },
-                      ),
-                      const Padding(padding: EdgeInsets.only(top: 16.0)),
-                      TextFormField(
-                        controller: password,
-                        decoration: const InputDecoration(
-                          icon: Icon(Icons.password),
-                          labelText: 'Contraseña',
                         ),
                         onChanged: (value) {},
                         // The validator receives the text that the user has entered.
@@ -130,11 +107,21 @@ emailSignUp(context) {
               child: const Text('Cancelar'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 if (formKey.currentState!.validate()) {
-                  dev.log("Validado");
-                  auth.signUpWithEmail(
-                      email.text.trim(), password.text.trim(), context);
+                  var emailExists =
+                      await auth.checkEmailAccounnt(email.text.trim(), context);
+                  if (emailExists) {
+                    dev.log("El correo ya existe");
+                  } else {
+                    if (!context.mounted) return;
+                    var emailString = email.text.trim();
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                SignUpPage(email: emailString)));
+                  }
                 }
               },
               child: const Text('Ok'),

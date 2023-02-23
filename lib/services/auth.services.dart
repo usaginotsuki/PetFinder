@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'dart:developer' as dev;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:pet_finder/models/user.model.dart';
+import 'package:pet_finder/services/user.services.dart';
 
 class AuthServices {
   FirebaseAuth auth = FirebaseAuth.instance;
@@ -13,6 +14,18 @@ class AuthServices {
       //'https://www.googleapis.com/auth/contacts.readonly',
     ],
   );
+
+  checkEmailAccounnt(String email, BuildContext context) async {
+    var db = FirebaseFirestore.instance;
+    final emailRef = db.collection("users");
+    final query = emailRef.where("email", isEqualTo: email);
+    final result = await query.get();
+    if (result.docs.isNotEmpty) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 
   signUpWithEmail(String email, String password, BuildContext context) async {
     try {
@@ -39,6 +52,8 @@ class AuthServices {
   loginWithGoogle(BuildContext context) async {
     var db = FirebaseFirestore.instance;
     final emailRef = db.collection("users");
+
+    final UserServices userServices = UserServices();
     final GoogleSignIn googleSignIn = GoogleSignIn();
     final GoogleSignInAccount? googleSignInAccount =
         await googleSignIn.signIn();
@@ -77,10 +92,12 @@ class AuthServices {
               userCredential.user!.emailVerified);
           dev.log(user.email.toString());
           dev.log(user.toFirestore().toString());
-          db.collection('users').add(user.toFirestore());
+
+          userServices.createUser(user);
         }
-        //dev.log(userCredential.toString());
-      } catch (e) {}
+      } catch (e) {
+        dev.log(e.toString());
+      }
     }
   }
 
