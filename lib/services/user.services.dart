@@ -13,6 +13,12 @@ class UserServices {
 
   createUser(UserData user) {
     var db = FirebaseFirestore.instance;
+    dev.log(user.toFirestore().toString());
     db.collection('users').add(user.toFirestore());
+  }
+
+  createNewUser(
+      String email, String name, String phoneNumber, String password) {
+    var db = FirebaseFirestore.instance;
   }
 }

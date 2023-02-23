@@ -1,10 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'dart:developer' as dev;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:pet_finder/models/user.model.dart';
 import 'package:pet_finder/services/user.services.dart';
+import 'package:phone_form_field/phone_form_field.dart';
+
+import '../pages/homescreen.page.dart';
 
 class AuthServices {
   FirebaseAuth auth = FirebaseAuth.instance;
@@ -27,13 +31,19 @@ class AuthServices {
     }
   }
 
-  signUpWithEmail(String email, String password, BuildContext context) async {
+  signUpWithEmail(String email, String password, String name,
+      String phoneNumber, BuildContext context) async {
+    UserServices userServices = UserServices();
     try {
       dev.log(email.toString());
       dev.log(password.toString());
+      dev.log(phoneNumber);
       var credential = await auth.createUserWithEmailAndPassword(
           email: email, password: password);
       dev.log(credential.toString());
+      UserData user = UserData(credential.user!.uid, name, email,
+          Timestamp.now(), phoneNumber, credential.user!.photoURL, false);
+      userServices.createUser(user);
     } catch (e) {
       dev.log(e.toString());
     }
@@ -77,8 +87,6 @@ class AuthServices {
 
         if (result.docs.isNotEmpty) {
           dev.log("email existe en db");
-
-          //login
         } else {
           dev.log("no email");
           //create user
@@ -95,6 +103,9 @@ class AuthServices {
 
           userServices.createUser(user);
         }
+        if (!context.mounted) return;
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => HomeScreen()));
       } catch (e) {
         dev.log(e.toString());
       }

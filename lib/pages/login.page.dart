@@ -1,5 +1,6 @@
 //write a login page in flutter
 
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:pet_finder/pages/signup.page.dart';
@@ -81,6 +82,7 @@ emailSignUp(context) {
                     children: [
                       const Text('Ingresa tu correo electrónico'),
                       TextFormField(
+                        keyboardType: TextInputType.emailAddress,
                         controller: email,
                         decoration: const InputDecoration(
                           icon: Icon(Icons.email),
@@ -89,8 +91,10 @@ emailSignUp(context) {
                         onChanged: (value) {},
                         // The validator receives the text that the user has entered.
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor ingresa tu correo';
+                          if (value == null ||
+                              value.isEmpty ||
+                              !EmailValidator.validate(value.trim())) {
+                            return 'Por favor ingresa un correo válido';
                           }
                           return null;
                         },
@@ -113,6 +117,33 @@ emailSignUp(context) {
                       await auth.checkEmailAccounnt(email.text.trim(), context);
                   if (emailExists) {
                     dev.log("El correo ya existe");
+                    if (!context.mounted) return;
+
+                    return showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text(
+                              'El correo ya existe',
+                              textAlign: TextAlign.center,
+                            ),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Text(
+                                    'El correo ya existe, por favor inicia sesión'),
+                              ],
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('Ok'),
+                              ),
+                            ],
+                          );
+                        });
                   } else {
                     if (!context.mounted) return;
                     var emailString = email.text.trim();
@@ -155,6 +186,7 @@ emailSignIn(context) {
                       const Text('Ingresa tu correo y contraseña'),
                       TextFormField(
                         controller: email,
+                        keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
                           icon: Icon(Icons.email),
                           labelText: 'Correo electrónico',
@@ -162,8 +194,10 @@ emailSignIn(context) {
                         onChanged: (value) {},
                         // The validator receives the text that the user has entered.
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor ingresa tu correo';
+                          if (value == null ||
+                              value.isEmpty ||
+                              !EmailValidator.validate(value)) {
+                            return 'Por favor ingresa un correo válido';
                           }
                           return null;
                         },
@@ -179,7 +213,7 @@ emailSignIn(context) {
                         // The validator receives the text that the user has entered.
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Por favor ingresa tu correo';
+                            return 'Por favor ingresa tu contraseña';
                           }
                           return null;
                         },
