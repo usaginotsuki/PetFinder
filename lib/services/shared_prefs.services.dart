@@ -8,4 +8,12 @@ class SharedPrefs {
     final SharedPreferences prefs = await _prefs;
     return prefs.setString(key, value);
   }
+
+  Future<String?> getString(String key) async {
+    final SharedPreferences prefs = await _prefs;
+    return prefs.getString(key);
+  }
+
+  
+
 }

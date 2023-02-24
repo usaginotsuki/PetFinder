@@ -5,6 +5,7 @@ import 'dart:developer' as dev;
 import 'package:location/location.dart';
 import 'package:pet_finder/models/report.model.dart';
 import 'package:pet_finder/services/report.services.dart';
+import 'package:pet_finder/widgets/drawer.widget.dart';
 import 'package:pet_finder/widgets/report.widget.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -40,35 +41,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            DrawerHeader(
-              child: Text("Drawer Header"),
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-            ),
-            ListTile(
-              title: Text("Item 1"),
-              onTap: () {
-                // Update the state of the app.
-                // ...
-              },
-            ),
-            ListTile(
-              title: Text("Item 2"),
-              onTap: () {
-                // Update the state of the app.
-                // ...
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: drawerMenu(context),
       appBar: AppBar(
-        title: const Text("Pagina Principal"),
-        toolbarOpacity: 0.5,
+        title: const Text("Mapa de mascotas perdidas"),
+        toolbarOpacity: 0.8,
       ),
       body: GoogleMap(
         myLocationEnabled: true,
@@ -129,7 +105,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   _addMarker() async {
-
     var reportList = await reportServices.getReports();
     dev.log(reportList.toString());
     reportList.forEach((element) {

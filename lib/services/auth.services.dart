@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'dart:developer' as dev;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:pet_finder/models/user.model.dart';
+import 'package:pet_finder/services/shared_prefs.services.dart';
 import 'package:pet_finder/services/user.services.dart';
 import 'package:phone_form_field/phone_form_field.dart';
 
 import '../pages/homescreen.page.dart';
 
 class AuthServices {
+  SharedPrefs sharedPrefs = SharedPrefs();
   FirebaseAuth auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: [
@@ -103,6 +105,8 @@ class AuthServices {
 
           userServices.createUser(user);
         }
+        sharedPrefs.setString('userID', userCredential.user!.uid);
+        dev.log(sharedPrefs.getString('userID').toString());
         if (!context.mounted) return;
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => HomeScreen()));

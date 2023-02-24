@@ -15,6 +15,11 @@ class UserData {
   UserData(this.id, this.name, this.email, this.creationTime, this.phoneNumber,
       this.photoURL, this.verification);
 
+  factory UserData.fromDocument(DocumentSnapshot doc) {
+    return UserData(doc['id'], doc['name'], doc['email'], doc['creationTime'],
+        doc['phoneNumber'], doc['photoURL'], doc['verification']);
+  }
+
   factory UserData.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
     SnapshotOptions? options,
@@ -33,7 +38,7 @@ class UserData {
   Map<String, dynamic> toFirestore() {
     return {
       'id': id ?? '',
-      'name': name  ?? '',
+      'name': name ?? '',
       'email': email ?? '',
       'creationTime': creationTime ?? '',
       'phoneNumber': phoneNumber ?? '',

@@ -23,10 +23,19 @@ class UserServices {
   }
 
   getUser(String id) async {
+    var user;
     var db = FirebaseFirestore.instance;
     final userRef = db.collection("users");
     final query = userRef.where("id", isEqualTo: id);
-    final result = query.get();
-    return result;
+    final result = await query.get();
+
+    if (result.docs.isNotEmpty) {
+      user = UserData.fromDocument(result.docs.first);
+      dev.log("User: " + user.toString());
+    } else {
+      user = null;
+    }
+
+    return user;
   }
 }

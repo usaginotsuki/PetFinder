@@ -9,13 +9,22 @@ class Report {
   String? photoUrl;
   String? userId;
   GeoPoint? location;
+  Timestamp? lastSeen;
 
   Report(this.id, this.type, this.size, this.status, this.details,
-      this.photoUrl, this.userId, this.location);
+      this.photoUrl, this.userId, this.location, this.lastSeen);
 
   factory Report.fromDocument(DocumentSnapshot doc) {
-    return Report(doc['id'], doc['type'], doc['size'], doc['status'],
-        doc['details'], doc['photoUrl'], doc['userId'], doc['location']);
+    return Report(
+        doc['id'],
+        doc['type'],
+        doc['size'],
+        doc['status'],
+        doc['details'],
+        doc['photoUrl'],
+        doc['userId'],
+        doc['location'],
+        doc['lastSeen']);
   }
 
   factory Report.fromFirestore(
@@ -32,6 +41,7 @@ class Report {
       data?['photoUrl'] ?? '',
       data?['userId'] ?? '',
       data?['location'] ?? '',
+      data?['lastSeen'] ?? '',
     );
   }
 
@@ -45,6 +55,7 @@ class Report {
       'photoUrl': photoUrl,
       'userId': userId,
       'location': location,
+      'lastSeen': lastSeen,
     };
   }
 }
