@@ -21,4 +21,12 @@ class UserServices {
       String email, String name, String phoneNumber, String password) {
     var db = FirebaseFirestore.instance;
   }
+
+  getUser(String id) async {
+    var db = FirebaseFirestore.instance;
+    final userRef = db.collection("users");
+    final query = userRef.where("id", isEqualTo: id);
+    final result = query.get();
+    return result;
+  }
 }

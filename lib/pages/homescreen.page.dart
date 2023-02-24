@@ -1,8 +1,11 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'dart:developer' as dev;
+import 'package:location/location.dart';
+import 'package:pet_finder/models/report.model.dart';
+import 'package:pet_finder/services/report.services.dart';
+import 'package:pet_finder/widgets/report.widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,17 +17,25 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
-
-  static const CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14.4746,
-  );
-
-  static const CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414); 
+  late bool _serviceEnabled;
+  late PermissionStatus _permissionGranted;
+  Location? _userLocation;
+  //late CameraPosition _initialPosition;
+  Set<Marker> _markers = Set();
+  ReportServices reportServices = ReportServices();
+  LocationData _locationData = LocationData.fromMap({});
+  bool initialized = false;
+  ReportWidget reportWidget = ReportWidget();
+  @override
+  void initState() {
+    if (!initialized) {
+      _getCurrentLocation();
+      initialized = true;
+      setState(() {});
+    }
+    _addMarker();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,22 +71,81 @@ class _HomeScreenState extends State<HomeScreen> {
         toolbarOpacity: 0.5,
       ),
       body: GoogleMap(
-        mapType: MapType.hybrid,
-        initialCameraPosition: _kGooglePlex,
+        myLocationEnabled: true,
+        markers: _markers,
+        mapType: MapType.normal,
+        initialCameraPosition: CameraPosition(
+            target: LatLng(_locationData.latitude ?? 6.7008168,
+                _locationData.longitude ?? -1.6998494),
+            zoom: 14),
         onMapCreated: (GoogleMapController controller) {
           _controller.complete(controller);
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _goToTheLake,
+        onPressed: () {},
         label: const Text('To the lake!'),
         icon: const Icon(Icons.directions_boat),
       ),
     );
   }
 
-  Future<void> _goToTheLake() async {
-    final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
+  _getCurrentLocation() async {
+    Location location = Location();
+    // Check if location service is enable
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    // Check if permission is granted
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+    if (!initialized) {
+      location.onLocationChanged.listen((LocationData currentLocation) {
+        setState(() {
+          _userLocation = location;
+          CameraUpdate cameraUpdate = CameraUpdate.newCameraPosition(
+              CameraPosition(
+                  target: LatLng(currentLocation.latitude ?? 6.7008168,
+                      currentLocation.longitude ?? -1.6998494),
+                  zoom: 18));
+          _controller.future.then((value) {
+            value.animateCamera(cameraUpdate);
+          });
+          _locationData = currentLocation;
+          initialized = true;
+        });
+      });
+    }
+  }
+
+  _addMarker() async {
+
+    var reportList = await reportServices.getReports();
+    dev.log(reportList.toString());
+    reportList.forEach((element) {
+      setState(() {
+        dev.log(_markers.length.toString());
+        _markers.add(Marker(
+            markerId: MarkerId(element.id.toString()),
+            position:
+                LatLng(element.location!.latitude, element.location!.longitude),
+            infoWindow: InfoWindow(
+                title: element.details,
+                snippet: element.type,
+                onTap: () {
+                  reportWidget.alertDialog(element, context);
+                })));
+      });
+    });
   }
 }
