@@ -30,8 +30,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     if (!initialized) {
+      dev.log("init");
       _getCurrentLocation();
-      initialized = true;
       setState(() {});
     }
     _addMarker();
@@ -46,20 +46,25 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text("Mapa de mascotas perdidas"),
         toolbarOpacity: 0.8,
       ),
-      body: GoogleMap(
-        myLocationEnabled: true,
-        markers: _markers,
-        mapType: MapType.normal,
-        initialCameraPosition: CameraPosition(
-            target: LatLng(_locationData.latitude ?? 6.7008168,
-                _locationData.longitude ?? -1.6998494),
-            zoom: 14),
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        },
-      ),
+      body: !initialized
+          ? const CircularProgressIndicator()
+          : GoogleMap(
+              myLocationEnabled: true,
+              markers: _markers,
+              mapType: MapType.normal,
+              initialCameraPosition: CameraPosition(
+                  target: LatLng(_locationData.latitude ?? 0.00,
+                      _locationData.longitude ?? 0.0),
+                  zoom: 14),
+              onMapCreated: (GoogleMapController controller) {
+                _controller.complete(controller);
+              },
+            ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
+        onPressed: () {
+          _getCurrentLocation();
+          dev.log("current");
+        },
         label: const Text('To the lake!'),
         icon: const Icon(Icons.directions_boat),
       ),
@@ -86,17 +91,19 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
     if (!initialized) {
-      location.onLocationChanged.listen((LocationData currentLocation) {
+      location.getLocation().then((currentLocation) {
         setState(() {
+          dev.log("moving");
           _userLocation = location;
           CameraUpdate cameraUpdate = CameraUpdate.newCameraPosition(
               CameraPosition(
-                  target: LatLng(currentLocation.latitude ?? 6.7008168,
-                      currentLocation.longitude ?? -1.6998494),
-                  zoom: 18));
+                  target: LatLng(
+                      currentLocation.latitude!, currentLocation.longitude!),
+                  zoom: 14));
           _controller.future.then((value) {
             value.animateCamera(cameraUpdate);
           });
+
           _locationData = currentLocation;
           initialized = true;
         });
