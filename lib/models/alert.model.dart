@@ -1,16 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Alert {
-  Timestamp? timestamp;
+  Timestamp? timeSeen;
   String? detail;
   GeoPoint? location;
   String? photoUrl;
 
-  Alert(this.timestamp, this.detail, this.location, this.photoUrl);
+  Alert(this.timeSeen, this.detail, this.location, this.photoUrl);
 
   factory Alert.fromDocument(DocumentSnapshot doc) {
     return Alert(
-        doc['timestamp'], doc['detail'], doc['location'], doc['photoUrl']);
+        doc['timeSeen'], doc['detail'], doc['location'], doc['photoUrl']);
   }
 
   factory Alert.fromFirestore(
@@ -19,7 +19,7 @@ class Alert {
   ) {
     final data = snapshot.data();
     return Alert(
-      data?['timestamp'] ?? '',
+      data?['timeSeen'] ?? '',
       data?['detail'] ?? '',
       data?['location'] ?? '',
       data?['photoUrl'] ?? '',
@@ -28,7 +28,7 @@ class Alert {
 
   Map<String, dynamic> toFirestore() {
     return {
-      'timestamp': timestamp,
+      'timeSeen': timeSeen,
       'detail': detail,
       'location': location,
       'photoUrl': photoUrl,

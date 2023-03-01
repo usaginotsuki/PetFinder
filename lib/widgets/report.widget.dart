@@ -1,7 +1,6 @@
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
-import 'package:pet_finder/models/user.model.dart';
-import 'package:pet_finder/services/alert.services.dart';
+import 'package:pet_finder/pages/report_details.page.dart';
 import 'package:pet_finder/services/user.services.dart';
 import '../models/report.model.dart';
 import 'dart:developer' as dev;
@@ -55,10 +54,13 @@ class ReportWidget {
             actions: <Widget>[
               TextButton(
                   onPressed: () {
-                    AlertServices alertServices = AlertServices();
-                    alertServices.getAlerts(report.id!);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                ReportDetails(report: report)));
                   },
-                  child: Text("Datos")),
+                  child: const Text("Ver más")),
               TextButton(
                 // ignore: prefer_const_constructors
                 child: Text('Close'),

@@ -5,10 +5,15 @@ import 'dart:developer' as dev;
 class AlertServices {
   /*Future<List<Alert>>*/ getAlerts(String id) async {
     List<Alert> ListAlert = [];
-    var db = FirebaseFirestore.instance;
-    final alertRef = db.collection("alert").doc(id);
-    var alerts = await alertRef.get();
 
-    dev.log(alerts.toString());
+    CollectionReference reports = FirebaseFirestore.instance
+        .collection('reporte')
+        .doc(id)
+        .collection('alerts');
+
+    var reportList = await reports.get();
+    reportList.docs.forEach((element) {
+      ListAlert.add(Alert.fromDocument(element));
+    });
   }
 }
