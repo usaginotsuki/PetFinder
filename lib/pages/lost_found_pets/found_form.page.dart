@@ -5,7 +5,9 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:location/location.dart';
 import 'package:pet_finder/widgets/drawer.widget.dart';
+import 'package:place_picker/place_picker.dart';
 import 'dart:developer' as dev;
 
 import 'package:select_form_field/select_form_field.dart';
@@ -236,9 +238,44 @@ class _FoundFormState extends State<FoundForm> {
       Step(
         state: currentStep >= 1 ? StepState.complete : StepState.disabled,
         title: Text("Paso 2"),
-        content: Text("Paso 2"),
+        content: Container(
+          child: Column(
+            children: [
+              Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: TextButton(
+                    onPressed: () {
+                      showPlacePicker();
+                    },
+                    child: const Text(
+                      'Selecciona donde lo encontraste?',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all<Color>(Colors.blue),
+                    ),
+                  )),
+            ],
+          ),
+        ),
         isActive: currentStep >= 1,
       ),
     ];
+  }
+
+  void showPlacePicker() async {
+    Location location = Location();
+    location.getLocation().then((value) async {
+      LocationResult result =
+          await Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => PlacePicker(
+                    "AIzaSyC8FOgSCxtooY65jztOv-iMwb8_3dPI9AU",
+                    displayLocation: LatLng(value.latitude!, value.longitude!),
+                  )));
+
+      // Handle the result in your way
+      dev.log(result.latLng.toString());
+    });
   }
 }
