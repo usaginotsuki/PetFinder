@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,8 +8,8 @@ import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
-import 'package:location_picker_flutter_map/location_picker_flutter_map.dart';
 import 'package:pet_finder/widgets/drawer.widget.dart';
+import 'package:place_picker/place_picker.dart';
 import 'dart:developer' as dev;
 import 'package:select_form_field/select_form_field.dart';
 
@@ -35,7 +36,8 @@ class _FoundFormState extends State<FoundForm> {
   int currentStep = 0;
   bool placeSelected = false;
   LatLng _pickedLocation = LatLng(0, 0);
-
+  final Completer<GoogleMapController> _controller =
+      Completer<GoogleMapController>();
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context);
@@ -257,39 +259,33 @@ class _FoundFormState extends State<FoundForm> {
                           MaterialStateProperty.all<Color>(Colors.blue),
                     ),
                   )),
-              SizedBox(
-                height: 600,
-                width: 350,
-                child: FlutterLocationPicker(
-                    initZoom: 11,
-                    minZoomLevel: 5,
-                    maxZoomLevel: 16,
-                    trackMyPosition: true,
-                    searchBarBackgroundColor: Colors.white,
-                    onError: (e) => print(e),
-                    onPicked: (pickedData) {
-                      dev.log(pickedData.latLong.latitude.toString());
-                      dev.log(pickedData.latLong.longitude.toString());
-                      print(pickedData.address);
-                      print(pickedData.addressData['country']);
-                    }),
-              ),
               Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: placeSelected
-                    ? /*SizedBox(
-                        height: 300,
-                        width: 300,
-                        child: GoogleMap(
-                            initialCameraPosition: CameraPosition(
-                                target: _pickedLocation, zoom: 15),
-                            markers: {
-                              Marker(
-                                  markerId: MarkerId('1'),
-                                  position: _pickedLocation)
-                            }),
-                      )*/
-                    Text('Ubicacion seleccionada')
+                    ? Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.black,
+                            width: 3,
+                          ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: SizedBox(
+                          height: screenSize.size.height * 0.5,
+                          width: screenSize.size.width * 0.8,
+                          child: GoogleMap(
+                              onMapCreated: (GoogleMapController controller) {
+                                _controller.complete(controller);
+                              },
+                              initialCameraPosition: CameraPosition(
+                                  target: _pickedLocation, zoom: 15),
+                              markers: {
+                                Marker(
+                                    markerId: MarkerId('1'),
+                                    position: _pickedLocation)
+                              }),
+                        ),
+                      )
                     : const Text(''),
               ),
             ],
@@ -303,20 +299,27 @@ class _FoundFormState extends State<FoundForm> {
   void showPlacePicker() async {
     Location location = Location();
     location.getLocation().then((value) async {
-      /*LocationResult result =
+      LocationResult result =
           await Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => PlacePicker(
                     "AIzaSyC8FOgSCxtooY65jztOv-iMwb8_3dPI9AU",
                     displayLocation: LatLng(value.latitude!, value.longitude!),
                   )));
       if (result.latLng != null) {
-        placeSelected = true;
         setState(() {
+          placeSelected = true;
           _pickedLocation = result.latLng!;
-        });*/
+          CameraUpdate cameraUpdate =
+              CameraUpdate.newLatLngZoom(_pickedLocation, 15);
+          _controller.future.then((value) {
+            dev.log("Camera moved");
+            value.animateCamera(cameraUpdate);
+          });
+        });
 
-      // Handle the result in your way
-      dev.log(_pickedLocation.toString());
+        // Handle the result in your way
+        dev.log(_pickedLocation.toString());
+      }
     });
   }
 }
