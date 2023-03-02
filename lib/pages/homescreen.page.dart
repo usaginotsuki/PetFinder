@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:developer' as dev;
 import 'package:location/location.dart';
 import 'package:pet_finder/models/report.model.dart';
+import 'package:pet_finder/pages/lost_found_pets/found_form.page.dart';
+import 'package:pet_finder/pages/lost_found_pets/lost_form.page.dart';
 import 'package:pet_finder/services/report.services.dart';
 import 'package:pet_finder/widgets/drawer.widget.dart';
 import 'package:pet_finder/widgets/report.widget.dart';
@@ -41,34 +44,49 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: drawerMenu(context),
-      appBar: AppBar(
-        title: const Text("Mapa de mascotas perdidas"),
-        toolbarOpacity: 0.8,
-      ),
-      body: !initialized
-          ? const CircularProgressIndicator()
-          : GoogleMap(
-              myLocationEnabled: true,
-              markers: _markers,
-              mapType: MapType.normal,
-              initialCameraPosition: CameraPosition(
-                  target: LatLng(_locationData.latitude ?? 0.00,
-                      _locationData.longitude ?? 0.0),
-                  zoom: 14),
-              onMapCreated: (GoogleMapController controller) {
-                _controller.complete(controller);
-              },
-            ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          _getCurrentLocation();
-          dev.log("current");
-        },
-        label: const Text('To the lake!'),
-        icon: const Icon(Icons.directions_boat),
-      ),
-    );
+        drawer: drawerMenu(context),
+        appBar: AppBar(
+          title: const Text("Mapa de mascotas perdidas"),
+          toolbarOpacity: 0.8,
+        ),
+        body: !initialized
+            ? const CircularProgressIndicator()
+            : GoogleMap(
+                myLocationEnabled: true,
+                markers: _markers,
+                mapType: MapType.normal,
+                initialCameraPosition: CameraPosition(
+                    target: LatLng(_locationData.latitude ?? 0.00,
+                        _locationData.longitude ?? 0.0),
+                    zoom: 14),
+                onMapCreated: (GoogleMapController controller) {
+                  _controller.complete(controller);
+                },
+              ),
+        floatingActionButton: SpeedDial(
+          animatedIcon: AnimatedIcons.menu_close,
+          animatedIconTheme: const IconThemeData(size: 22.0),
+          backgroundColor: Colors.blue,
+          visible: true,
+          curve: Curves.bounceIn,
+          label: Text("Nueva alerta"),
+          children: [
+            SpeedDialChild(
+                child: const Icon(Icons.add),
+                label: "Perdí una mascota",
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => LostForm()));
+                }),
+            SpeedDialChild(
+                child: const Icon(Icons.list),
+                label: "Encontré una mascota",
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => FoundForm()));
+                }),
+          ],
+        ));
   }
 
   _getCurrentLocation() async {

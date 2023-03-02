@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:easy_image_viewer/easy_image_viewer.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
@@ -31,7 +33,7 @@ class _ReportDetailsState extends State<ReportDetails> {
   bool dataLoaded = true;
   bool mapLoaded = true;
   Location? _userLocation;
-
+  Set<Marker> _markers = Set();
   String date = "";
   String userCreated = "";
   late String dateString = "";
@@ -47,6 +49,8 @@ class _ReportDetailsState extends State<ReportDetails> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context);
+
     Report reporte = widget.report;
     return dataLoaded && mapLoaded
         ? const Center(
@@ -63,10 +67,8 @@ class _ReportDetailsState extends State<ReportDetails> {
                 child: Column(
                   children: [
                     const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10),
+                      padding: EdgeInsets.symmetric(vertical: 5),
                     ),
-                    Text("Detalles de la alerta",
-                        style: const TextStyle(fontSize: 20)),
                     Text(reporte.details!,
                         style:
                             const TextStyle(fontSize: 35, color: Colors.blue)),
@@ -117,20 +119,28 @@ class _ReportDetailsState extends State<ReportDetails> {
                           fontSize: 20,
                           color: Colors.black,
                         )),
-                    SizedBox(
-                      height: 300,
-                      width: 300,
-                      child: GoogleMap(
-                        myLocationEnabled: true,
-                        //markers: _markers,
-                        mapType: MapType.normal,
-                        initialCameraPosition: CameraPosition(
-                            target: LatLng(_locationData.latitude ?? 0.00,
-                                _locationData.longitude ?? 0.0),
-                            zoom: 14),
-                        onMapCreated: (GoogleMapController controller) {
-                          _controller.complete(controller);
-                        },
+                    Container(
+                      decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black, width: 2)),
+                      child: SizedBox(
+                        height: screenSize.size.height * 0.3,
+                        width: screenSize.size.width * 0.9,
+                        child: GoogleMap(
+                          myLocationEnabled: true,
+                          markers: _markers,
+                          mapType: MapType.normal,
+                          initialCameraPosition: CameraPosition(
+                              target: LatLng(_locationData.latitude ?? 0.00,
+                                  _locationData.longitude ?? 0.0),
+                              zoom: 14),
+                          onMapCreated: (GoogleMapController controller) {
+                            _controller.complete(controller);
+                          },
+                          gestureRecognizers: {
+                            Factory<OneSequenceGestureRecognizer>(
+                                () => EagerGestureRecognizer())
+                          },
+                        ),
                       ),
                     ),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 10)),
@@ -194,6 +204,20 @@ class _ReportDetailsState extends State<ReportDetails> {
         timeAgoString = timeago.format(timeAgo, locale: 'es');
 
         timeAgoString = timeAgoString.replaceAll("hace", "Hace");
+        _markers.add(
+          Marker(
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueMagenta),
+            markerId: MarkerId("1"),
+            position: LatLng(widget.report.location!.latitude,
+                widget.report.location!.longitude),
+            infoWindow: InfoWindow(
+              title: "Alerta",
+              snippet: "Alerta",
+            ),
+          ),
+        );
+        dev.log(_markers.length.toString());
       });
     });
   }
