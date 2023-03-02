@@ -7,9 +7,9 @@ import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
+import 'package:location_picker_flutter_map/location_picker_flutter_map.dart';
 import 'package:pet_finder/widgets/drawer.widget.dart';
 import 'dart:developer' as dev;
-
 import 'package:select_form_field/select_form_field.dart';
 
 class FoundForm extends StatefulWidget {
@@ -257,6 +257,23 @@ class _FoundFormState extends State<FoundForm> {
                           MaterialStateProperty.all<Color>(Colors.blue),
                     ),
                   )),
+              SizedBox(
+                height: 600,
+                width: 350,
+                child: FlutterLocationPicker(
+                    initZoom: 11,
+                    minZoomLevel: 5,
+                    maxZoomLevel: 16,
+                    trackMyPosition: true,
+                    searchBarBackgroundColor: Colors.white,
+                    onError: (e) => print(e),
+                    onPicked: (pickedData) {
+                      dev.log(pickedData.latLong.latitude.toString());
+                      dev.log(pickedData.latLong.longitude.toString());
+                      print(pickedData.address);
+                      print(pickedData.addressData['country']);
+                    }),
+              ),
               Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: placeSelected
