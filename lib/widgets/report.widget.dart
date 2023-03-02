@@ -45,7 +45,7 @@ class ReportWidget {
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 20,
-                        color: Colors.blue,
+                        color: Colors.pink,
                       )),
                   const Padding(padding: EdgeInsets.symmetric(vertical: 10)),
                 ],

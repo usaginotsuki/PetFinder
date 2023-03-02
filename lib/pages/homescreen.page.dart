@@ -66,10 +66,10 @@ class _HomeScreenState extends State<HomeScreen> {
         floatingActionButton: SpeedDial(
           animatedIcon: AnimatedIcons.menu_close,
           animatedIconTheme: const IconThemeData(size: 22.0),
-          backgroundColor: Colors.blue,
+          backgroundColor: Colors.pink,
           visible: true,
           curve: Curves.bounceIn,
-          label: Text("Nueva alerta"),
+          label: const Text("Nueva alerta"),
           children: [
             SpeedDialChild(
                 child: const Icon(Icons.add),
