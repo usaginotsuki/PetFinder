@@ -22,11 +22,19 @@ class FoundForm extends StatefulWidget {
 
 class _FoundFormState extends State<FoundForm> {
   final formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
+
+  TextEditingController description = TextEditingController();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final List<Map<String, dynamic>> _categories = [
     {'value': 'dog', 'label': 'Perro', 'icon': Icon(Icons.pets)},
     {'value': 'cat', 'label': 'Gato'},
     {'value': 'other', 'label': 'Otro'}
+  ];
+  final List<Map<String, dynamic>> _sizes = [
+    {'value': 'small', 'label': 'Pequeño', 'icon': Icon(Icons.pets)},
+    {'value': 'medium', 'label': 'Mediano'},
+    {'value': 'largue', 'label': 'Grande'}
   ];
   final ImagePicker _picker = ImagePicker();
   bool dateSelected = false;
@@ -38,6 +46,7 @@ class _FoundFormState extends State<FoundForm> {
   LatLng _pickedLocation = LatLng(0, 0);
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context);
@@ -85,7 +94,7 @@ class _FoundFormState extends State<FoundForm> {
       Step(
         state: currentStep >= 0 ? StepState.complete : StepState.disabled,
         isActive: currentStep >= 0,
-        title: Text("Paso 1"),
+        title: Text("Datos"),
         content: SingleChildScrollView(
           child: Form(
             key: formKey,
@@ -240,7 +249,7 @@ class _FoundFormState extends State<FoundForm> {
       ),
       Step(
         state: currentStep >= 1 ? StepState.complete : StepState.disabled,
-        title: Text("Paso 2"),
+        title: Text("Ubicación"),
         content: Container(
           child: Column(
             children: [
@@ -293,6 +302,45 @@ class _FoundFormState extends State<FoundForm> {
         ),
         isActive: currentStep >= 1,
       ),
+      Step(
+        state: currentStep >= 2 ? StepState.complete : StepState.disabled,
+        title: Text("Detalles"),
+        content: Container(
+          child: Column(
+            children: [
+              Form(key: _formKey, child: Column(children: [])),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: TextButton(
+                  onPressed: () {
+                    if (placeSelected && dateSelected && imageSelected) {
+                      setState(() {
+                        currentStep = 3;
+                      });
+                      saveNewReport();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Debes seleccionar una fecha, una imagen y un lugar'),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text(
+                    'Publicar',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  style: ButtonStyle(
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(Colors.blue),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      )
     ];
   }
 
@@ -322,4 +370,6 @@ class _FoundFormState extends State<FoundForm> {
       }
     });
   }
+
+  saveNewReport() {}
 }

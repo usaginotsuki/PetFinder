@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:pet_finder/pages/homescreen.page.dart';
+import 'package:pet_finder/pages/login.page.dart';
 import 'package:pet_finder/pages/profile.page.dart';
+import 'package:pet_finder/services/shared_prefs.services.dart';
 
 @override
 Widget drawerMenu(BuildContext context) {
+  SharedPrefs sharedPrefs = SharedPrefs();
+  var screenSize = MediaQuery.of(context).size;
   return Drawer(
     child: ListView(
       children: [
@@ -31,6 +35,18 @@ Widget drawerMenu(BuildContext context) {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => ProfilePage()),
+            );
+          },
+        ),
+        Padding(padding: EdgeInsets.only(top: screenSize.height * 0.55)),
+        ListTile(
+          title: Text("Cerrar Sesión"),
+          trailing: Icon(Icons.logout),
+          onTap: () {
+            sharedPrefs.setUserID("");
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => LoginPage()),
             );
           },
         ),

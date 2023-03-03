@@ -9,11 +9,18 @@ class SharedPrefs {
     return prefs.setString(key, value);
   }
 
+  Future<bool> setUserID(String value) async {
+    final SharedPreferences prefs = await _prefs;
+    return prefs.setString("userID", value);
+  }
+
   Future<String?> getString(String key) async {
     final SharedPreferences prefs = await _prefs;
     return prefs.getString(key);
   }
 
-  
-
+  Future<String?> getUserID() async {
+    final SharedPreferences prefs = await _prefs;
+    return prefs.getString("userID");
+  }
 }

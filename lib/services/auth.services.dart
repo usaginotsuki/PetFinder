@@ -105,8 +105,8 @@ class AuthServices {
 
           userServices.createUser(user);
         }
-        sharedPrefs.setString('userID', userCredential.user!.uid);
-        dev.log(sharedPrefs.getString('userID').toString());
+        sharedPrefs.setUserID(userCredential.user!.uid);
+
         if (!context.mounted) return;
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => HomeScreen()));
