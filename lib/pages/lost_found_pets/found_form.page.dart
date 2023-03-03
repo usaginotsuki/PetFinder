@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
@@ -8,10 +9,14 @@ import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
+import 'package:pet_finder/services/report.services.dart';
+import 'package:pet_finder/services/shared_prefs.services.dart';
 import 'package:pet_finder/widgets/drawer.widget.dart';
 import 'package:place_picker/place_picker.dart';
 import 'dart:developer' as dev;
 import 'package:select_form_field/select_form_field.dart';
+
+import '../../models/report.model.dart';
 
 class FoundForm extends StatefulWidget {
   const FoundForm({super.key});
@@ -23,7 +28,7 @@ class FoundForm extends StatefulWidget {
 class _FoundFormState extends State<FoundForm> {
   final formKey = GlobalKey<FormState>();
   final _formKey = GlobalKey<FormState>();
-
+  ReportServices reportServices = ReportServices();
   TextEditingController description = TextEditingController();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final List<Map<String, dynamic>> _categories = [
@@ -37,15 +42,27 @@ class _FoundFormState extends State<FoundForm> {
     {'value': 'largue', 'label': 'Grande'}
   ];
   final ImagePicker _picker = ImagePicker();
-  bool dateSelected = false;
-  DateTime date = DateTime.now();
-  late File _image;
-  bool imageSelected = false;
   int currentStep = 0;
-  bool placeSelected = false;
-  LatLng _pickedLocation = LatLng(0, 0);
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
+
+  //Step 1 checkers
+  bool _mascotTypeSelected = false;
+  bool dateSelected = false;
+  bool imageSelected = false;
+
+  //Step 2 checkers
+  bool placeSelected = false;
+
+  //Step 3 checkers
+  bool sizeSelected = false;
+
+  //Data
+  String _mascotTypeValue = '';
+  DateTime date = DateTime.now();
+  late File _image;
+  LatLng _pickedLocation = LatLng(0, 0);
+  String size = '';
 
   @override
   Widget build(BuildContext context) {
@@ -67,13 +84,43 @@ class _FoundFormState extends State<FoundForm> {
           });
         },
         onStepContinue: () {
-          setState(() {
-            if (currentStep < getSteps().length - 1) {
+          if (currentStep == 0) {
+            if (_mascotTypeSelected && dateSelected && imageSelected) {
+              currentStep = currentStep + 1;
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Por favor completa todos los campos'),
+                ),
+              );
+            }
+          } else if (currentStep == 1) {
+            if (placeSelected) {
+              currentStep = currentStep + 1;
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Por favor selecciona una ubicación'),
+                ),
+              );
+            }
+          } else if (currentStep == 2) {
+            if (sizeSelected && _formKey.currentState!.validate()) {
+              currentStep = currentStep + 1;
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Por favor selecciona un tamaño'),
+                ),
+              );
+            }
+          }
+          setState(() {});
+          /*if (currentStep < getSteps().length - 1) {
               currentStep = currentStep + 1;
             } else {
               currentStep = 0;
-            }
-          });
+            }*/
         },
         onStepCancel: () {
           setState(() {
@@ -109,8 +156,12 @@ class _FoundFormState extends State<FoundForm> {
                       type: SelectFormFieldType.dropdown, // or can be dialog
                       labelText: 'Que tipo de mascota es?',
                       items: _categories,
-                      onChanged: (val) => print(val),
-                      onSaved: (val) => print(val),
+                      onChanged: (val) {
+                        _mascotTypeValue = val;
+                        setState(() {
+                          _mascotTypeSelected = true;
+                        });
+                      },
                     ),
                     const Padding(padding: EdgeInsets.only(top: 50)),
                     GestureDetector(
@@ -305,24 +356,72 @@ class _FoundFormState extends State<FoundForm> {
       Step(
         state: currentStep >= 2 ? StepState.complete : StepState.disabled,
         title: Text("Detalles"),
-        content: Container(
+        content: SingleChildScrollView(
           child: Column(
             children: [
-              Form(key: _formKey, child: Column(children: [])),
+              Form(
+                  key: _formKey,
+                  child: Column(children: [
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: SelectFormField(
+                          style: const TextStyle(
+                              color: Colors.black, fontSize: 20),
+                          type:
+                              SelectFormFieldType.dropdown, // or can be dialog
+                          labelText: 'De que tamaño es?',
+                          items: _sizes,
+                          onChanged: (val) {
+                            size = val;
+                            setState(() {
+                              sizeSelected = true;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.black,
+                            width: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: TextFormField(
+                          style: TextStyle(color: Colors.black, fontSize: 20),
+                          maxLines: 5,
+                          controller: description,
+                          decoration: const InputDecoration(
+                            labelText: ' Añade información adicional',
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingresa una descripción';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ),
+                  ])),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: TextButton(
                   onPressed: () {
-                    if (placeSelected && dateSelected && imageSelected) {
-                      setState(() {
-                        currentStep = 3;
-                      });
+                    if (currentStep == 2 &&
+                        sizeSelected &&
+                        _formKey.currentState!.validate()) {
+                      dev.log("Saving report");
                       saveNewReport();
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
-                              'Debes seleccionar una fecha, una imagen y un lugar'),
+                              'Completa todos los campos para poder publicar'),
                         ),
                       );
                     }
@@ -371,5 +470,15 @@ class _FoundFormState extends State<FoundForm> {
     });
   }
 
-  saveNewReport() {}
+  saveNewReport() async {
+    SharedPrefs prefs = SharedPrefs();
+    GeoPoint location =
+        GeoPoint(_pickedLocation.latitude, _pickedLocation.longitude);
+    Timestamp timeStamp = Timestamp.fromDate(date);
+    var userID = await prefs.getUserID();
+    Report report = Report("", _mascotTypeValue, size, "Perdido",
+        description.text, "", userID, location, timeStamp);
+    dev.log(report.toString());
+    await reportServices.saveReport(report);
+  }
 }

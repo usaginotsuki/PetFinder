@@ -17,4 +17,14 @@ class ReportServices {
 
     return ListReport;
   }
+
+  saveReport(Report report) async {
+    dev.log("Saving to db");
+    CollectionReference reports =
+        FirebaseFirestore.instance.collection('reporte');
+
+    var id = await reports.add(report.toFirestore());
+    dev.log(id.id);
+    reports.doc(id.id).update({'id': id.id});
+  }
 }

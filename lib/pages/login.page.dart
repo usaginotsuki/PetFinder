@@ -33,6 +33,7 @@ class _LoginPageState extends State<LoginPage> {
   getPrefs() async {
     userID = await sharedPrefs.getUserID() ?? "";
     dev.log("userID: " + userID);
+    setState(() {});
   }
 
   @override
