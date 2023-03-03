@@ -5,8 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:developer' as dev;
 import 'package:location/location.dart';
 import 'package:pet_finder/models/report.model.dart';
-import 'package:pet_finder/pages/lost_found_pets/found_form.page.dart';
-import 'package:pet_finder/pages/lost_found_pets/lost_form.page.dart';
+import 'package:pet_finder/pages/found_form.page.dart';
 import 'package:pet_finder/services/report.services.dart';
 import 'package:pet_finder/widgets/drawer.widget.dart';
 import 'package:pet_finder/widgets/report.widget.dart';
@@ -75,15 +74,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: const Icon(Icons.add),
                 label: "Perdí una mascota",
                 onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => LostForm()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => FoundForm(status: "Perdido")));
                 }),
             SpeedDialChild(
                 child: const Icon(Icons.list),
                 label: "Encontré una mascota",
                 onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => FoundForm()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => FoundForm(status: 'Visto')));
                 }),
           ],
         ));

@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloudinary_public/cloudinary_public.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
@@ -9,6 +11,7 @@ import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
+import 'package:pet_finder/pages/homescreen.page.dart';
 import 'package:pet_finder/services/report.services.dart';
 import 'package:pet_finder/services/shared_prefs.services.dart';
 import 'package:pet_finder/widgets/drawer.widget.dart';
@@ -16,10 +19,11 @@ import 'package:place_picker/place_picker.dart';
 import 'dart:developer' as dev;
 import 'package:select_form_field/select_form_field.dart';
 
-import '../../models/report.model.dart';
+import '../models/report.model.dart';
 
 class FoundForm extends StatefulWidget {
-  const FoundForm({super.key});
+  final String status;
+  const FoundForm({super.key, required this.status});
 
   @override
   State<FoundForm> createState() => _FoundFormState();
@@ -71,7 +75,9 @@ class _FoundFormState extends State<FoundForm> {
       key: _scaffoldKey,
       drawer: drawerMenu(context),
       appBar: AppBar(
-        title: const Text("Formulario de mascotas encontradas"),
+        title: widget.status == "Visto"
+            ? Text("Reportar mascota encontrada")
+            : Text("Reportar mascota perdida"),
         toolbarOpacity: 0.8,
       ),
       body: Stepper(
@@ -178,7 +184,7 @@ class _FoundFormState extends State<FoundForm> {
                               child: Column(
                                 children: [
                                   Text(
-                                    'Fecha y hora de la publicacion: ',
+                                    'Fecha y hora: ',
                                     style:
                                         TextStyle(fontWeight: FontWeight.bold),
                                     textAlign: TextAlign.left,
@@ -207,7 +213,9 @@ class _FoundFormState extends State<FoundForm> {
                                 children: [
                                   Icon(Icons.calendar_today),
                                   SizedBox(width: 10),
-                                  Text('Cuando lo encontraste?'),
+                                  Text(widget.status == "Visto"
+                                      ? 'Cuando lo viste?'
+                                      : 'Cuando desapareció?'),
                                 ],
                               ),
                             ),
@@ -310,8 +318,10 @@ class _FoundFormState extends State<FoundForm> {
                     onPressed: () {
                       showPlacePicker();
                     },
-                    child: const Text(
-                      'Selecciona donde lo encontraste?',
+                    child: Text(
+                      widget.status == "Visto"
+                          ? "Donde lo viste?"
+                          : "Donde desapareció?",
                       style: TextStyle(color: Colors.white),
                     ),
                     style: ButtonStyle(
@@ -471,14 +481,36 @@ class _FoundFormState extends State<FoundForm> {
   }
 
   saveNewReport() async {
-    SharedPrefs prefs = SharedPrefs();
-    GeoPoint location =
-        GeoPoint(_pickedLocation.latitude, _pickedLocation.longitude);
-    Timestamp timeStamp = Timestamp.fromDate(date);
-    var userID = await prefs.getUserID();
-    Report report = Report("", _mascotTypeValue, size, "Perdido",
-        description.text, "", userID, location, timeStamp);
-    dev.log(report.toString());
-    await reportServices.saveReport(report);
+    final cloudinary = CloudinaryPublic('dmx1v3oeu', 'hsvfa23f', cache: false);
+    try {
+      final response = await cloudinary.uploadFile(
+        CloudinaryFile.fromFile(_image.path,
+            resourceType: CloudinaryResourceType.Image),
+      );
+      dev.log(response.secureUrl);
+      SharedPrefs prefs = SharedPrefs();
+      GeoPoint location =
+          GeoPoint(_pickedLocation.latitude, _pickedLocation.longitude);
+      Timestamp timeStamp = Timestamp.fromDate(date);
+      var userID = await prefs.getUserID();
+      Report report = Report("", _mascotTypeValue, size, widget.status,
+          description.text, response.secureUrl, userID, location, timeStamp);
+      dev.log(report.toString());
+      await reportServices.saveReport(report);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Reporte publicado'),
+        ),
+      );
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => HomeScreen()));
+    } on CloudinaryException catch (e) {
+      dev.log(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Hubo un error, intentalo de nuevo'),
+        ),
+      );
+    }
   }
 }
