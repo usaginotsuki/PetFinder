@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_finder/pages/homescreen.page.dart';
 import 'package:pet_finder/pages/login.page.dart';
+import 'package:pet_finder/pages/my_reports.page.dart';
 import 'package:pet_finder/pages/profile.page.dart';
 import 'package:pet_finder/services/shared_prefs.services.dart';
 
@@ -35,6 +36,16 @@ Widget drawerMenu(BuildContext context) {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => ProfilePage()),
+            );
+          },
+        ),
+        ListTile(
+          title: Text("Mis reportes"),
+          trailing: Icon(Icons.info),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => MyReports()),
             );
           },
         ),

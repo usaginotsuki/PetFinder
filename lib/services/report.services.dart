@@ -27,4 +27,25 @@ class ReportServices {
     dev.log(id.id);
     reports.doc(id.id).update({'id': id.id});
   }
+
+  Future<List<Report>> getReportsByID(String id) async {
+    List<Report> ListReport = [];
+
+    CollectionReference reports =
+        FirebaseFirestore.instance.collection('reporte');
+
+    var reportList = await reports.where('userId', isEqualTo: id).get();
+    reportList.docs.forEach((element) {
+      ListReport.add(Report.fromDocument(element));
+    });
+    return ListReport;
+  }
+
+  //delete report from firebase with ID
+  deleteReport(String id) async {
+    CollectionReference reports =
+        FirebaseFirestore.instance.collection('reporte');
+
+    reports.doc(id).delete();
+  }
 }

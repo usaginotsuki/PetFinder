@@ -1,0 +1,69 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/src/widgets/placeholder.dart';
+import 'package:pet_finder/services/report.services.dart';
+import 'package:pet_finder/widgets/drawer.widget.dart';
+
+import '../models/report.model.dart';
+import '../services/shared_prefs.services.dart';
+import 'dart:developer' as dev;
+
+import '../widgets/report.widget.dart';
+
+class MyReports extends StatefulWidget {
+  const MyReports({super.key});
+
+  @override
+  State<MyReports> createState() => _MyReportsState();
+}
+
+class _MyReportsState extends State<MyReports> {
+  SharedPrefs sharedPrefs = SharedPrefs();
+  bool dataObtained = false;
+  ReportServices reportServices = ReportServices();
+  List<Report> reports = [];
+  ReportWidget reportWidget = ReportWidget();
+
+  @override
+  initState() {
+    getReports();
+    super.initState();
+  }
+
+  Widget build(BuildContext context) {
+    return dataObtained
+        ? Scaffold(
+            appBar: AppBar(
+              title: Text("Mis reportes"),
+            ),
+            drawer: drawerMenu(context),
+            body: ListView.builder(
+              itemCount: reports.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  child: ListTile(
+                    trailing: Icon(Icons.info),
+                    title: Text(reports[index].details!),
+                    subtitle: Text(reports[index].type!),
+                    onTap: () {
+                      reportWidget.alertDialog(reports[index], context);
+                    },
+                  ),
+                );
+              },
+            ),
+          )
+        : Placeholder();
+  }
+
+  getReports() async {
+    var userID = await sharedPrefs.getUserID();
+    reports = await reportServices.getReportsByID(userID!).then((value) {
+      setState(() {
+        dataObtained = true;
+      });
+      return value;
+    });
+    dev.log(reports.toString());
+  }
+}

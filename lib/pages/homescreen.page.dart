@@ -7,6 +7,7 @@ import 'package:location/location.dart';
 import 'package:pet_finder/models/report.model.dart';
 import 'package:pet_finder/pages/found_form.page.dart';
 import 'package:pet_finder/services/report.services.dart';
+import 'package:pet_finder/services/shared_prefs.services.dart';
 import 'package:pet_finder/widgets/drawer.widget.dart';
 import 'package:pet_finder/widgets/report.widget.dart';
 
@@ -29,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   LocationData _locationData = LocationData.fromMap({});
   bool initialized = false;
   ReportWidget reportWidget = ReportWidget();
+
   @override
   void initState() {
     if (!initialized) {
