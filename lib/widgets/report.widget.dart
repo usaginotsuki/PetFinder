@@ -58,7 +58,7 @@ class ReportWidget {
               ),
             ),
             actions: <Widget>[
-              userID != ""
+              userID == report.userId
                   ? Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextButton(
@@ -66,6 +66,8 @@ class ReportWidget {
                           onPressed: () {
                             dev.log("Eliminar alerta");
                             dev.log(report.id!);
+
+                            deleteAlert(context, report);
                           },
                           style: TextButton.styleFrom(
                             foregroundColor: Colors.white,
@@ -73,7 +75,17 @@ class ReportWidget {
                             disabledForegroundColor: Colors.grey,
                           )),
                     )
-                  : Container(),
+                  : Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextButton(
+                          child: Text('Lo he visto'),
+                          onPressed: () {},
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Color.fromARGB(219, 54, 188, 121),
+                            disabledForegroundColor: Colors.grey,
+                          )),
+                    ),
               TextButton(
                   onPressed: () {
                     Navigator.push(
@@ -96,6 +108,55 @@ class ReportWidget {
   }
 
   deleteReport(Report report) async {
-     await reportServices.deleteReport(report.id!);
+    var del = await reportServices.deleteReport(report.id!);
+
+    return del;
+  }
+
+  deleteAlert(BuildContext context, Report report) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("¿Estás seguro de que quieres eliminar la alerta?",
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                )),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text(
+                      "No podrás recuperar la alerta y se eliminaran los avisos asociados",
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        color: Colors.red,
+                      )),
+                  const Padding(padding: EdgeInsets.symmetric(vertical: 10)),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(false);
+                  },
+                  child: const Text("Cancelar")),
+              TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.red,
+                    disabledForegroundColor: Colors.grey,
+                  ),
+                  onPressed: () {
+                    deleteReport(report);
+                    Navigator.of(context).pop(true);
+                  },
+                  child: const Text("Eliminar")),
+            ],
+          );
+        });
   }
 }

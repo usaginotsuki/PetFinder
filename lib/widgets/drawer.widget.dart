@@ -49,7 +49,7 @@ Widget drawerMenu(BuildContext context) {
             );
           },
         ),
-        Padding(padding: EdgeInsets.only(top: screenSize.height * 0.55)),
+        Padding(padding: EdgeInsets.only(top: screenSize.height * 0.45)),
         ListTile(
           title: Text("Cerrar Sesión"),
           trailing: Icon(Icons.logout),

@@ -45,7 +45,9 @@ class ReportServices {
   deleteReport(String id) async {
     CollectionReference reports =
         FirebaseFirestore.instance.collection('reporte');
-
-    reports.doc(id).delete();
+    dev.log("Deleting");
+    var del = reports.doc(id).delete().then((value) {
+      return value;
+    });
   }
 }

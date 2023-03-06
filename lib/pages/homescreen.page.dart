@@ -55,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
             : GoogleMap(
                 myLocationEnabled: true,
                 markers: _markers,
+                zoomControlsEnabled: false,
                 mapType: MapType.normal,
                 initialCameraPosition: CameraPosition(
                     target: LatLng(_locationData.latitude ?? 0.00,
@@ -113,6 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
     }
+    
     if (!initialized) {
       location.getLocation().then((currentLocation) {
         setState(() {
