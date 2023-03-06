@@ -202,13 +202,16 @@ class _ReportDetailsState extends State<ReportDetails> {
         var timeAgo = DateTime.now().subtract(DateTime.now().difference(date));
 
         timeAgoString = timeago.format(timeAgo, locale: 'es');
-
         timeAgoString = timeAgoString.replaceAll("hace", "Hace");
+        dev.log(widget.report.status!.toString());
         _markers.add(
           Marker(
             icon: BitmapDescriptor.defaultMarkerWithHue(
-                BitmapDescriptor.hueMagenta),
-            markerId: MarkerId("1"),
+              widget.report.status == "Perdido"
+                  ? BitmapDescriptor.hueRed
+                  : BitmapDescriptor.hueGreen,
+            ),
+            markerId: MarkerId(widget.report.details!),
             position: LatLng(widget.report.location!.latitude,
                 widget.report.location!.longitude),
             infoWindow: InfoWindow(
@@ -219,6 +222,7 @@ class _ReportDetailsState extends State<ReportDetails> {
         );
         dev.log(_markers.length.toString());
       });
+      setState(() {});
     });
   }
 }

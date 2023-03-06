@@ -53,7 +53,17 @@ class _MyReportsState extends State<MyReports> {
               },
             ),
           )
-        : Placeholder();
+        : //Loading screen 
+        Scaffold(
+            appBar: AppBar(
+              title: Text("Mis reportes"),
+            ),
+            drawer: drawerMenu(context),
+            body: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+
   }
 
   getReports() async {

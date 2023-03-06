@@ -51,7 +51,9 @@ class _HomeScreenState extends State<HomeScreen> {
           toolbarOpacity: 0.8,
         ),
         body: !initialized
-            ? const CircularProgressIndicator()
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
             : GoogleMap(
                 myLocationEnabled: true,
                 markers: _markers,
@@ -114,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
     }
-    
+
     if (!initialized) {
       location.getLocation().then((currentLocation) {
         setState(() {
@@ -142,7 +144,13 @@ class _HomeScreenState extends State<HomeScreen> {
     reportList.forEach((element) {
       setState(() {
         dev.log(_markers.length.toString());
+        dev.log(element.status.toString());
         _markers.add(Marker(
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+              element.status == "Perdido"
+                  ? BitmapDescriptor.hueRed
+                  : BitmapDescriptor.hueGreen,
+            ),
             markerId: MarkerId(element.id.toString()),
             position:
                 LatLng(element.location!.latitude, element.location!.longitude),

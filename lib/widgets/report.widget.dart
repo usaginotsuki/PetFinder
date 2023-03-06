@@ -6,6 +6,7 @@ import 'package:pet_finder/services/shared_prefs.services.dart';
 import 'package:pet_finder/services/user.services.dart';
 import '../models/report.model.dart';
 import 'dart:developer' as dev;
+import 'package:timeago/timeago.dart' as timeago;
 
 class ReportWidget {
   SharedPrefs sharedPrefs = SharedPrefs();
@@ -16,6 +17,12 @@ class ReportWidget {
     UserServices userServices = UserServices();
     ReportServices reportServices = ReportServices();
     //UserData user = await userServices.getUser(report.userId!);
+    DateTime date = report.lastSeen!.toDate();
+    String dateString =
+        '${date.day}/${date.month}/${date.year} \t A las \t ${date.hour}:${date.minute}';
+    DateTime timeAgo = DateTime.now().subtract(DateTime.now().difference(date));
+    String timeAgoString = timeago.format(timeAgo, locale: 'es');
+    timeAgoString = timeAgoString.replaceAll("hace", "Hace");
 
     return showDialog(
         context: context,
@@ -47,13 +54,23 @@ class ReportWidget {
                       },
                       child: Image.network(report.photoUrl!)),
                   const Padding(padding: EdgeInsets.symmetric(vertical: 10)),
-                  Text("Alerta creada: ${report.lastSeen!.toDate().toString()}",
+                  Text("Alerta creada: \n $dateString",
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 20,
                         color: Colors.pink,
                       )),
-                  const Padding(padding: EdgeInsets.symmetric(vertical: 10)),
+                  Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        "Visto por última vez: \n $timeAgoString",
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.black,
+                        ),
+                        textAlign: TextAlign.center,
+                      )),
+                  const Padding(padding: EdgeInsets.symmetric(vertical: 5)),
                 ],
               ),
             ),
