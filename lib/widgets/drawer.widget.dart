@@ -4,11 +4,13 @@ import 'package:pet_finder/pages/login.page.dart';
 import 'package:pet_finder/pages/my_reports.page.dart';
 import 'package:pet_finder/pages/nearby_reports.dart';
 import 'package:pet_finder/pages/profile.page.dart';
+import 'package:pet_finder/services/auth.services.dart';
 import 'package:pet_finder/services/shared_prefs.services.dart';
 
 @override
 Widget drawerMenu(BuildContext context) {
   SharedPrefs sharedPrefs = SharedPrefs();
+  AuthServices authServices = AuthServices();
   var screenSize = MediaQuery.of(context).size;
   return Drawer(
     child: ListView(
@@ -66,6 +68,7 @@ Widget drawerMenu(BuildContext context) {
           trailing: Icon(Icons.logout),
           onTap: () {
             sharedPrefs.setUserID("");
+            authServices.signOut();
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => LoginPage()),

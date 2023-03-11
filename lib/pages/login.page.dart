@@ -278,31 +278,7 @@ class _LoginPageState extends State<LoginPage> {
                       dev.log("El correo ya existe");
                       if (!context.mounted) return;
 
-                      return showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text(
-                                'El correo ya existe',
-                                textAlign: TextAlign.center,
-                              ),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  Text(
-                                      'El correo ya existe, por favor inicia sesión'),
-                                ],
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text('Ok'),
-                                ),
-                              ],
-                            );
-                          });
+                      ToastError("El correo ya existe");
                     } else {
                       if (!context.mounted) return;
                       var emailString = email.text.trim();
@@ -323,8 +299,13 @@ class _LoginPageState extends State<LoginPage> {
 
   googleSignIn(context) async {
     AuthServices auth = AuthServices();
-    await auth.loginWithGoogle(context);
-    return true;
+    bool toast = await auth.loginWithGoogle(context).then((value) {
+      dev.log(value.toString());
+      dev.log("Valor de toast");
+
+      return value;
+    });
+    toast ? ToastCorrect() : ToastError("No se pudo iniciar sesión");
   }
 
   emailSignIn(context) async {
@@ -402,7 +383,9 @@ class _LoginPageState extends State<LoginPage> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
                   child: const Text('Cancelar'),
                 ),
                 TextButton(
@@ -411,14 +394,9 @@ class _LoginPageState extends State<LoginPage> {
                       dev.log("Validado");
                       bool data = await auth.loginWithEmail(
                           email.text.trim(), password.text.trim(), context);
-                      /*if (data) {
-                        Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const HomeScreen()));
-                      }*/
-                      dev.log(sharedPrefs.getUserID().toString());
-                      data ? ToastCorrect() : ToastFalse();
+                      data
+                          ? ToastCorrect()
+                          : ToastError("No se pudo iniciar sesión");
                     }
                   },
                   child: const Text('Ok'),
@@ -453,7 +431,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void ToastFalse() {
+  void ToastError(String errorMessage) {
     return fToast.showToast(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
@@ -464,11 +442,11 @@ class _LoginPageState extends State<LoginPage> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.check),
+            Icon(Icons.error),
             SizedBox(
               width: 12.0,
             ),
-            Text("No se pudo iniciar sesión"),
+            Text(errorMessage),
           ],
         ),
       ),

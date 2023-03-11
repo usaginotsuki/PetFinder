@@ -14,6 +14,7 @@ import '../pages/homescreen.page.dart';
 class AuthServices {
   SharedPrefs sharedPrefs = SharedPrefs();
   FirebaseAuth auth = FirebaseAuth.instance;
+
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: [
       'email',
@@ -34,7 +35,7 @@ class AuthServices {
   }
 
   signUpWithEmail(String email, String password, String name,
-      String phoneNumber, BuildContext context) async {
+      String phoneNumber, String photoURL, BuildContext context) async {
     UserServices userServices = UserServices();
     try {
       dev.log(email.toString());
@@ -44,7 +45,7 @@ class AuthServices {
           email: email, password: password);
       dev.log(credential.toString());
       UserData user = UserData(credential.user!.uid, name, email,
-          Timestamp.now(), phoneNumber, credential.user!.photoURL, false);
+          Timestamp.now(), phoneNumber, photoURL, false);
       userServices.createUser(user);
     } catch (e) {
       dev.log(e.toString());
@@ -68,14 +69,14 @@ class AuthServices {
     }
   }
 
-  loginWithGoogle(BuildContext context) async {
+  Future<bool> loginWithGoogle(BuildContext context) async {
     var db = FirebaseFirestore.instance;
     final emailRef = db.collection("users");
-
     final UserServices userServices = UserServices();
     final GoogleSignIn googleSignIn = GoogleSignIn();
     final GoogleSignInAccount? googleSignInAccount =
         await googleSignIn.signIn();
+    dev.log(googleSignInAccount.toString());
     if (googleSignInAccount != null) {
       final GoogleSignInAuthentication googleSignInAuthentication =
           await googleSignInAccount.authentication;
@@ -112,9 +113,9 @@ class AuthServices {
 
           userServices.createUser(user);
         }
-        sharedPrefs.setUserID(userCredential.user!.uid);
+        await sharedPrefs.setUserID(userCredential.user!.uid);
 
-        if (!context.mounted) return;
+        //if (!context.mounted) return;
 
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => HomeScreen()));
@@ -124,10 +125,17 @@ class AuthServices {
         return false;
       }
     }
+    return false;
   }
 
   logoutGoogle() async {
     sharedPrefs.setUserID("");
+    await _googleSignIn.signOut();
+  }
+
+  signOut() async {
+    await sharedPrefs.setUserID("");
+    await auth.signOut();
     await _googleSignIn.signOut();
   }
 }

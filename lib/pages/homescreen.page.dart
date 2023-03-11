@@ -9,6 +9,7 @@ import 'package:pet_finder/models/report.model.dart';
 import 'package:pet_finder/pages/found_form.page.dart';
 import 'package:pet_finder/services/report.services.dart';
 import 'package:pet_finder/services/shared_prefs.services.dart';
+import 'package:pet_finder/services/user.services.dart';
 import 'package:pet_finder/widgets/drawer.widget.dart';
 import 'package:pet_finder/widgets/report.widget.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -32,9 +33,12 @@ class _HomeScreenState extends State<HomeScreen> {
   LocationData _locationData = LocationData.fromMap({});
   bool initialized = false;
   ReportWidget reportWidget = ReportWidget();
-
+  UserServices userServices = UserServices();
+  late bool phoneNumber;
+  
   @override
   void initState() {
+    
     if (!initialized) {
       dev.log("init");
       _getCurrentLocation();
