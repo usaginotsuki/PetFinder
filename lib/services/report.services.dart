@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:developer' as dev;
+import 'package:geoflutterfire2/geoflutterfire2.dart';
 
 import '../models/report.model.dart';
 
@@ -22,7 +23,8 @@ class ReportServices {
     dev.log("Saving to db");
     CollectionReference reports =
         FirebaseFirestore.instance.collection('reporte');
-
+    dev.log(report.location.toString());
+    dev.log(report.toFirestore().toString());
     var id = await reports.add(report.toFirestore());
     dev.log(id.id);
     reports.doc(id.id).update({'id': id.id});
@@ -50,4 +52,25 @@ class ReportServices {
       return value;
     });
   }
+
+  Stream<List<DocumentSnapshot>> getReportsByLocation(double lat, double lon) {
+    dev.log("Getting reports by location");
+
+    GeoFlutterFire geo = GeoFlutterFire();
+
+    dev.log(lat.toString());
+    GeoFirePoint center = geo.point(latitude: lat, longitude: lon);
+    CollectionReference reports =
+        FirebaseFirestore.instance.collection('reporte');
+
+    double radius = 5000;
+    String field = 'location';
+
+    Stream<List<DocumentSnapshot>> stream = geo
+        .collection(collectionRef: reports)
+        .within(center: center, radius: radius, field: field);
+    return stream;
+  }
+
+  
 }

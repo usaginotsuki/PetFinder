@@ -51,13 +51,20 @@ class AuthServices {
     }
   }
 
-  loginWithEmail(String email, String password, BuildContext context) async {
+  Future<bool> loginWithEmail(
+      String email, String password, BuildContext context) async {
     try {
       var credential = await auth.signInWithEmailAndPassword(
           email: email, password: password);
       dev.log(credential.toString());
+      await sharedPrefs.setUserID(credential.user!.uid);
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => HomeScreen()));
+      return true;
+      //dev.log(credential.toString());
     } catch (e) {
-      dev.log(e.toString());
+      return false;
+      //dev.log(e.toString());
     }
   }
 
@@ -108,15 +115,19 @@ class AuthServices {
         sharedPrefs.setUserID(userCredential.user!.uid);
 
         if (!context.mounted) return;
+
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => HomeScreen()));
+        return true;
       } catch (e) {
         dev.log(e.toString());
+        return false;
       }
     }
   }
 
   logoutGoogle() async {
+    sharedPrefs.setUserID("");
     await _googleSignIn.signOut();
   }
 }

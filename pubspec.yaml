@@ -59,6 +59,9 @@ dependencies:
   cloudinary_public: ^0.20.0
   flutter_launcher_icons: ^0.12.0
   fluttertoast: ^8.2.1
+  geoflutterfire2: ^2.3.14
+  latlong2: ^0.8.1
+
  
 
 dev_dependencies:

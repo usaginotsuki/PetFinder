@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloudinary_public/cloudinary_public.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+import 'package:geoflutterfire2/geoflutterfire2.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
@@ -80,63 +82,66 @@ class _FoundFormState extends State<FoundForm> {
             : Text("Reportar mascota perdida"),
         toolbarOpacity: 0.8,
       ),
-      body: Stepper(
-        steps: getSteps(),
-        type: StepperType.horizontal,
-        currentStep: currentStep,
-        onStepTapped: (step) {
-          setState(() {
-            currentStep = step;
-          });
-        },
-        onStepContinue: () {
-          if (currentStep == 0) {
-            if (_mascotTypeSelected && dateSelected && imageSelected) {
-              currentStep = currentStep + 1;
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Por favor completa todos los campos'),
-                ),
-              );
+      body: Center(
+        child: Stepper(
+          steps: getSteps(),
+          type: StepperType.horizontal,
+          currentStep: currentStep,
+          onStepTapped: (step) {
+            setState(() {
+              currentStep = step;
+            });
+          },
+          onStepContinue: () {
+            if (currentStep == 0) {
+              if (_mascotTypeSelected && dateSelected && imageSelected) {
+                currentStep = currentStep + 1;
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Por favor completa todos los campos'),
+                  ),
+                );
+              }
+            } else if (currentStep == 1) {
+              if (placeSelected) {
+                currentStep = currentStep + 1;
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Por favor selecciona una ubicación'),
+                  ),
+                );
+              }
+            } else if (currentStep == 2) {
+              if (sizeSelected && _formKey.currentState!.validate()) {
+                //currentStep = currentStep + 1;
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Por favor selecciona un tamaño'),
+                  ),
+                );
+              }
             }
-          } else if (currentStep == 1) {
-            if (placeSelected) {
-              currentStep = currentStep + 1;
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Por favor selecciona una ubicación'),
-                ),
-              );
-            }
-          } else if (currentStep == 2) {
-            if (sizeSelected && _formKey.currentState!.validate()) {
-              currentStep = currentStep + 1;
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Por favor selecciona un tamaño'),
-                ),
-              );
-            }
-          }
-          setState(() {});
-          /*if (currentStep < getSteps().length - 1) {
-              currentStep = currentStep + 1;
-            } else {
-              currentStep = 0;
-            }*/
-        },
-        onStepCancel: () {
-          setState(() {
-            if (currentStep > 0) {
-              currentStep = currentStep - 1;
-            } else {
-              currentStep = 0;
-            }
-          });
-        },
+
+            setState(() {});
+            /*if (currentStep < getSteps().length - 1) {
+                currentStep = currentStep + 1;
+              } else {
+                currentStep = 0;
+              }*/
+          },
+          onStepCancel: () {
+            setState(() {
+              if (currentStep > 0) {
+                currentStep = currentStep - 1;
+              } else {
+                currentStep = 0;
+              }
+            });
+          },
+        ),
       ),
     );
   }
@@ -489,14 +494,17 @@ class _FoundFormState extends State<FoundForm> {
       );
       dev.log(response.secureUrl);
       SharedPrefs prefs = SharedPrefs();
-      GeoPoint location =
-          GeoPoint(_pickedLocation.latitude, _pickedLocation.longitude);
+      GeoFirePoint location =
+          GeoFirePoint(_pickedLocation.latitude, _pickedLocation.longitude);
+      var loc = Position(location.hash, location.geoPoint);
       Timestamp timeStamp = Timestamp.fromDate(date);
       var userID = await prefs.getUserID();
+      dev.log(loc.toString());
       Report report = Report("", _mascotTypeValue, size, widget.status,
-          description.text, response.secureUrl, userID, location, timeStamp);
+          description.text, response.secureUrl, userID, loc, timeStamp);
       dev.log(report.toString());
       await reportServices.saveReport(report);
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Reporte publicado'),

@@ -212,8 +212,8 @@ class _ReportDetailsState extends State<ReportDetails> {
                   : BitmapDescriptor.hueGreen,
             ),
             markerId: MarkerId(widget.report.details!),
-            position: LatLng(widget.report.location!.latitude,
-                widget.report.location!.longitude),
+            position: LatLng(widget.report.location!.geopoint!.latitude,
+                widget.report.location!.geopoint!.longitude),
             infoWindow: InfoWindow(
               title: "Alerta",
               snippet: "Alerta",

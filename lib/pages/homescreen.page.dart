@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -10,6 +11,7 @@ import 'package:pet_finder/services/report.services.dart';
 import 'package:pet_finder/services/shared_prefs.services.dart';
 import 'package:pet_finder/widgets/drawer.widget.dart';
 import 'package:pet_finder/widgets/report.widget.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -140,11 +142,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   _addMarker() async {
     var reportList = await reportServices.getReports();
-    dev.log(reportList.toString());
-    reportList.forEach((element) {
+
+    reportList.forEach((element) async {
+      var date =
+          DateTime.fromMillisecondsSinceEpoch(element.lastSeen!.seconds * 1000);
+      var timeAgo = DateTime.now().subtract(DateTime.now().difference(date));
+      var timeAgoString = timeago.format(timeAgo, locale: 'es');
+      timeAgoString = timeAgoString.replaceAll("hace", "Hace");
+
       setState(() {
         dev.log(_markers.length.toString());
         dev.log(element.status.toString());
+        dev.log(element.location!.geopoint.toString());
         _markers.add(Marker(
             icon: BitmapDescriptor.defaultMarkerWithHue(
               element.status == "Perdido"
@@ -152,11 +161,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   : BitmapDescriptor.hueGreen,
             ),
             markerId: MarkerId(element.id.toString()),
-            position:
-                LatLng(element.location!.latitude, element.location!.longitude),
+            position: LatLng(element.location!.geopoint?.latitude ?? 0,
+                element.location!.geopoint?.longitude ?? 0),
             infoWindow: InfoWindow(
                 title: element.details,
-                snippet: element.type,
+                snippet: timeAgoString,
                 onTap: () {
                   reportWidget.alertDialog(element, context);
                 })));

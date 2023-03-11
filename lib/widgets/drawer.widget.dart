@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pet_finder/pages/homescreen.page.dart';
 import 'package:pet_finder/pages/login.page.dart';
 import 'package:pet_finder/pages/my_reports.page.dart';
+import 'package:pet_finder/pages/nearby_reports.dart';
 import 'package:pet_finder/pages/profile.page.dart';
 import 'package:pet_finder/services/shared_prefs.services.dart';
 
@@ -30,16 +31,6 @@ Widget drawerMenu(BuildContext context) {
           },
         ),
         ListTile(
-          title: Text("Perfil"),
-          trailing: Icon(Icons.person),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ProfilePage()),
-            );
-          },
-        ),
-        ListTile(
           title: Text("Mis reportes"),
           trailing: Icon(Icons.info),
           onTap: () {
@@ -49,7 +40,27 @@ Widget drawerMenu(BuildContext context) {
             );
           },
         ),
-        Padding(padding: EdgeInsets.only(top: screenSize.height * 0.45)),
+        ListTile(
+          title: Text("Alertas cercanas"),
+          trailing: Icon(Icons.network_wifi_sharp),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => NearbyReports()),
+            );
+          },
+        ),
+        Padding(padding: EdgeInsets.only(top: screenSize.height * 0.40)),
+        ListTile(
+          title: Text("Perfil"),
+          trailing: Icon(Icons.person),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ProfilePage()),
+            );
+          },
+        ),
         ListTile(
           title: Text("Cerrar Sesión"),
           trailing: Icon(Icons.logout),

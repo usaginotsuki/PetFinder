@@ -11,6 +11,7 @@ import 'dart:developer' as dev;
 import '../../Core/Colors/Hex_Color.dart';
 import '../services/auth.services.dart';
 import '../services/shared_prefs.services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -24,8 +25,15 @@ class _LoginPageState extends State<LoginPage> {
   UserServices user = UserServices();
   SharedPrefs sharedPrefs = SharedPrefs();
   String userID = "";
+  bool buttonGoogle = true;
+  late bool _showPassword;
+  late FToast fToast;
+
   @override
   void initState() {
+    fToast = FToast();
+    fToast.init(context);
+    _showPassword = false;
     getPrefs();
     super.initState();
   }
@@ -100,9 +108,13 @@ class _LoginPageState extends State<LoginPage> {
                             Buttons.Google,
                             elevation: 2.0,
                             text: 'Iniciar con Google',
-                            onPressed: () {
-                              dev.log("Iniciar con Google");
-                              auth.loginWithGoogle(context);
+                            onPressed: () async {
+                              if (buttonGoogle) {
+                                buttonGoogle = false;
+                                var result =
+                                    await auth.loginWithGoogle(context);
+                                buttonGoogle = true;
+                              }
                             },
                           ),
                         ),
@@ -206,188 +218,262 @@ class _LoginPageState extends State<LoginPage> {
             ),
           );
   }
-}
 
-emailSignUp(context) {
-  final formKey = GlobalKey<FormState>();
-  TextEditingController email = TextEditingController();
-  AuthServices auth = AuthServices();
+  emailSignUp(context) {
+    final formKey = GlobalKey<FormState>();
+    TextEditingController email = TextEditingController();
+    AuthServices auth = AuthServices();
 
-  return showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text(
-            'Registro',
-            textAlign: TextAlign.center,
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Form(
-                  key: formKey,
-                  child: Column(
-                    children: [
-                      const Text('Ingresa tu correo electrónico'),
-                      TextFormField(
-                        keyboardType: TextInputType.emailAddress,
-                        controller: email,
-                        decoration: const InputDecoration(
-                          icon: Icon(Icons.email),
-                          labelText: 'Correo electrónico',
-                        ),
-                        onChanged: (value) {},
-                        // The validator receives the text that the user has entered.
-                        validator: (value) {
-                          if (value == null ||
-                              value.isEmpty ||
-                              !EmailValidator.validate(value.trim())) {
-                            return 'Por favor ingresa un correo válido';
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                  ))
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancelar'),
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text(
+              'Registro',
+              textAlign: TextAlign.center,
             ),
-            TextButton(
-              onPressed: () async {
-                if (formKey.currentState!.validate()) {
-                  var emailExists =
-                      await auth.checkEmailAccounnt(email.text.trim(), context);
-                  if (emailExists) {
-                    dev.log("El correo ya existe");
-                    if (!context.mounted) return;
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Form(
+                    key: formKey,
+                    child: Column(
+                      children: [
+                        const Text('Ingresa tu correo electrónico'),
+                        TextFormField(
+                          keyboardType: TextInputType.emailAddress,
+                          controller: email,
+                          decoration: const InputDecoration(
+                            icon: Icon(Icons.email),
+                            labelText: 'Correo electrónico',
+                          ),
+                          onChanged: (value) {},
+                          // The validator receives the text that the user has entered.
+                          validator: (value) {
+                            if (value == null ||
+                                value.isEmpty ||
+                                !EmailValidator.validate(value.trim())) {
+                              return 'Por favor ingresa un correo válido';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ))
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  if (formKey.currentState!.validate()) {
+                    var emailExists = await auth.checkEmailAccounnt(
+                        email.text.trim(), context);
+                    if (emailExists) {
+                      dev.log("El correo ya existe");
+                      if (!context.mounted) return;
 
-                    return showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: const Text(
-                              'El correo ya existe',
-                              textAlign: TextAlign.center,
-                            ),
-                            content: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: const [
-                                Text(
-                                    'El correo ya existe, por favor inicia sesión'),
-                              ],
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text('Ok'),
+                      return showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: const Text(
+                                'El correo ya existe',
+                                textAlign: TextAlign.center,
                               ),
-                            ],
-                          );
-                        });
-                  } else {
-                    if (!context.mounted) return;
-                    var emailString = email.text.trim();
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                SignUpPage(email: emailString)));
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Text(
+                                      'El correo ya existe, por favor inicia sesión'),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Ok'),
+                                ),
+                              ],
+                            );
+                          });
+                    } else {
+                      if (!context.mounted) return;
+                      var emailString = email.text.trim();
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  SignUpPage(email: emailString)));
+                    }
                   }
-                }
-              },
-              child: const Text('Ok'),
-            ),
-          ],
-        );
-      });
-}
-
-emailSignIn(context) {
-  final formKey = GlobalKey<FormState>();
-  TextEditingController email = TextEditingController();
-  TextEditingController password = TextEditingController();
-
-  AuthServices auth = AuthServices();
-  return showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text(
-            'Login',
-            textAlign: TextAlign.center,
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Form(
-                  key: formKey,
-                  child: Column(
-                    children: [
-                      const Text('Ingresa tu correo y contraseña'),
-                      TextFormField(
-                        controller: email,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          icon: Icon(Icons.email),
-                          labelText: 'Correo electrónico',
-                        ),
-                        onChanged: (value) {},
-                        // The validator receives the text that the user has entered.
-                        validator: (value) {
-                          if (value == null ||
-                              value.isEmpty ||
-                              !EmailValidator.validate(value)) {
-                            return 'Por favor ingresa un correo válido';
-                          }
-                          return null;
-                        },
-                      ),
-                      const Padding(padding: EdgeInsets.only(top: 16.0)),
-                      TextFormField(
-                        controller: password,
-                        decoration: const InputDecoration(
-                          icon: Icon(Icons.password),
-                          labelText: 'Contraseña',
-                        ),
-                        onChanged: (value) {},
-                        // The validator receives the text that the user has entered.
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor ingresa tu contraseña';
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                  ))
+                },
+                child: const Text('Ok'),
+              ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancelar'),
+          );
+        });
+  }
+
+  googleSignIn(context) async {
+    AuthServices auth = AuthServices();
+    await auth.loginWithGoogle(context);
+    return true;
+  }
+
+  emailSignIn(context) async {
+    final formKey = GlobalKey<FormState>();
+    TextEditingController email = TextEditingController();
+    TextEditingController password = TextEditingController();
+    AuthServices auth = AuthServices();
+    return showDialog(
+        context: context,
+        builder: (_) {
+          return StatefulBuilder(builder: (context, setState) {
+            return AlertDialog(
+              title: const Text(
+                'Ingresa tu correo y contraseña',
+                textAlign: TextAlign.center,
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Form(
+                      key: formKey,
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            controller: email,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: const InputDecoration(
+                              icon: Icon(Icons.email),
+                              labelText: 'Correo electrónico',
+                            ),
+                            onChanged: (value) {},
+                            // The validator receives the text that the user has entered.
+                            validator: (value) {
+                              if (value == null ||
+                                  value.isEmpty ||
+                                  !EmailValidator.validate(value)) {
+                                return 'Por favor ingresa un correo válido';
+                              }
+                              return null;
+                            },
+                          ),
+                          const Padding(padding: EdgeInsets.only(top: 16.0)),
+                          TextFormField(
+                            controller: password,
+                            decoration: InputDecoration(
+                                icon: const Icon(Icons.lock),
+                                labelText: 'Contraseña',
+                                suffixIcon: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _showPassword = !_showPassword;
+                                    });
+                                  },
+                                  child: Icon(
+                                    _showPassword
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                    color: Colors.black,
+                                  ),
+                                )),
+                            obscureText: !_showPassword,
+
+                            onChanged: (value) {},
+                            // The validator receives the text that the user has entered.
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor ingresa tu contraseña';
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                      ))
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {},
+                  child: const Text('Cancelar'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    if (formKey.currentState!.validate()) {
+                      dev.log("Validado");
+                      bool data = await auth.loginWithEmail(
+                          email.text.trim(), password.text.trim(), context);
+                      /*if (data) {
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const HomeScreen()));
+                      }*/
+                      dev.log(sharedPrefs.getUserID().toString());
+                      data ? ToastCorrect() : ToastFalse();
+                    }
+                  },
+                  child: const Text('Ok'),
+                ),
+              ],
+            );
+          });
+        });
+  }
+
+  void ToastCorrect() {
+    return fToast.showToast(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25.0),
+          color: Colors.greenAccent,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check),
+            SizedBox(
+              width: 12.0,
             ),
-            TextButton(
-              onPressed: () {
-                if (formKey.currentState!.validate()) {
-                  dev.log("Validado");
-                  auth.loginWithEmail(
-                      email.text.trim(), password.text.trim(), context);
-                }
-              },
-              child: const Text('Ok'),
-            ),
+            Text("Se inicio sesión correctamente"),
           ],
-        );
-      });
+        ),
+      ),
+      gravity: ToastGravity.BOTTOM,
+      toastDuration: Duration(seconds: 2),
+    );
+  }
+
+  void ToastFalse() {
+    return fToast.showToast(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25.0),
+          color: Colors.redAccent,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check),
+            SizedBox(
+              width: 12.0,
+            ),
+            Text("No se pudo iniciar sesión"),
+          ],
+        ),
+      ),
+      gravity: ToastGravity.BOTTOM,
+      toastDuration: Duration(seconds: 2),
+    );
+  }
 }
