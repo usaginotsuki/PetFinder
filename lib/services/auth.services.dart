@@ -11,11 +11,13 @@ import 'package:pet_finder/services/user.services.dart';
 import 'package:phone_form_field/phone_form_field.dart';
 
 import '../pages/homescreen.page.dart';
+import '../pages/login.page.dart';
 
 class AuthServices {
   SharedPrefs sharedPrefs = SharedPrefs();
   FirebaseAuth auth = FirebaseAuth.instance;
-
+  String verifId = "";
+  UserServices userServices = UserServices();
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: [
       'email',
@@ -39,7 +41,6 @@ class AuthServices {
       String phoneNumber, String photoURL, BuildContext context) async {
     UserServices userServices = UserServices();
     try {
-     
       var credential = await auth.createUserWithEmailAndPassword(
           email: email, password: password);
       dev.log(credential.toString());
@@ -58,7 +59,6 @@ class AuthServices {
           email: email, password: password);
       dev.log(credential.toString());
       await sharedPrefs.setUserID(credential.user!.uid);
-      checkPhoneVerification(context);
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => HomeScreen()));
       return true;
@@ -77,6 +77,19 @@ class AuthServices {
     final GoogleSignInAccount? googleSignInAccount =
         await googleSignIn.signIn();
     dev.log(googleSignInAccount.toString());
+
+    await googleCreateAccount(googleSignInAccount, context);
+    dev.log("Current User");
+    dev.log(auth.currentUser.toString());
+    return false;
+  }
+
+  Future<void> googleCreateAccount(
+      GoogleSignInAccount? googleSignInAccount, BuildContext context) async {
+    final UserServices userServices = UserServices();
+
+    var db = FirebaseFirestore.instance;
+    final emailRef = db.collection("users");
     if (googleSignInAccount != null) {
       final GoogleSignInAuthentication googleSignInAuthentication =
           await googleSignInAccount.authentication;
@@ -116,17 +129,13 @@ class AuthServices {
         await sharedPrefs.setUserID(userCredential.user!.uid);
 
         //if (!context.mounted) return;
-        checkPhoneVerification(context);
 
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => HomeScreen()));
-        return true;
       } catch (e) {
         dev.log(e.toString());
-        return false;
       }
     }
-    return false;
   }
 
   logoutGoogle() async {
@@ -134,10 +143,15 @@ class AuthServices {
     await _googleSignIn.signOut();
   }
 
-  signOut() async {
+  signOut(context) async {
     await sharedPrefs.setUserID("");
     await auth.signOut();
     await _googleSignIn.signOut();
+    dev.log("logout");
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => LoginPage()),
+    );
   }
 
   Future<bool> checkPhoneVerification(context) async {
@@ -152,5 +166,54 @@ class AuthServices {
           MaterialPageRoute(builder: (context) => PhoneVerification()));
       return false;
     }
+  }
+
+  sendConfirmationSMS(String phoneNumber, BuildContext context) async {
+    dev.log("send sms");
+    dev.log(phoneNumber.toString());
+    auth.verifyPhoneNumber(
+      phoneNumber: "+" + phoneNumber,
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        dev.log("verif completed");
+        dev.log(credential.smsCode.toString());
+        dev.log(credential.token.toString());
+        var data = await FirebaseAuth.instance.signInWithCredential(credential);
+        dev.log(await data.toString());
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        dev.log("verif failed");
+        dev.log(e.toString());
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        dev.log("code sent");
+        verifId = verificationId;
+        dev.log(verificationId.toString());
+        dev.log(resendToken.toString());
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        dev.log("Timeout");
+        dev.log("Timeout" + verificationId.toString());
+      },
+    );
+  }
+
+  submitOTP(String OTP, BuildContext context) {
+    dev.log("submit otp");
+    dev.log(OTP.toString());
+    dev.log(verifId.toString());
+    PhoneAuthCredential phoneAuthCredential =
+        PhoneAuthProvider.credential(verificationId: verifId, smsCode: OTP);
+    try {
+      auth.currentUser?.updatePhoneNumber(phoneAuthCredential);
+      userServices.updateUserPhoneNumber(
+          auth.currentUser!.uid, auth.currentUser!.phoneNumber.toString());
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+      );
+    } catch (e) {
+      dev.log(e.toString());
+    }
+    dev.log(auth.currentUser!.phoneNumber.toString());
   }
 }

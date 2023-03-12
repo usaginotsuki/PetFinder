@@ -5,12 +5,6 @@ import 'dart:developer' as dev;
 import '../models/user.model.dart';
 
 class UserServices {
-  checkUser() {
-    CollectionReference users = FirebaseFirestore.instance.collection('users');
-
-    dev.log(users.toString());
-  }
-
   createUser(UserData user) {
     var db = FirebaseFirestore.instance;
     dev.log(user.toFirestore().toString());
@@ -37,5 +31,10 @@ class UserServices {
     }
 
     return user;
+  }
+
+  updateUserPhoneNumber(String id, String phoneNumber) {
+    var db = FirebaseFirestore.instance;
+    db.collection('users').doc(id).update({"phoneNumber": phoneNumber});
   }
 }

@@ -68,11 +68,7 @@ Widget drawerMenu(BuildContext context) {
           trailing: Icon(Icons.logout),
           onTap: () {
             sharedPrefs.setUserID("");
-            authServices.signOut();
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => LoginPage()),
-            );
+            authServices.signOut(context);
           },
         ),
       ],

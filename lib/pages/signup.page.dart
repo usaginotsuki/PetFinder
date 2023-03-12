@@ -146,6 +146,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                       PhoneFormField(
                         decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
                           hintText: 'Teléfono',
                           labelText: 'Ingresa tu teléfono',
                           icon: Icon(Icons.phone),

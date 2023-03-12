@@ -7,6 +7,7 @@ import 'dart:developer' as dev;
 import 'package:location/location.dart';
 import 'package:pet_finder/models/report.model.dart';
 import 'package:pet_finder/pages/found_form.page.dart';
+import 'package:pet_finder/services/auth.services.dart';
 import 'package:pet_finder/services/report.services.dart';
 import 'package:pet_finder/services/shared_prefs.services.dart';
 import 'package:pet_finder/services/user.services.dart';
@@ -34,15 +35,17 @@ class _HomeScreenState extends State<HomeScreen> {
   bool initialized = false;
   ReportWidget reportWidget = ReportWidget();
   UserServices userServices = UserServices();
-  //late bool phoneVerified;
   SharedPrefs sharedPrefs = SharedPrefs();
+  AuthServices authServices = AuthServices();
 
   @override
   void initState() {
     if (!initialized) {
       dev.log("init");
       _getCurrentLocation();
-      setState(() {});
+      if (this.mounted) {
+        setState(() {});
+      }
     }
     _addMarker();
     super.initState();
@@ -56,25 +59,23 @@ class _HomeScreenState extends State<HomeScreen> {
           title: const Text("Mapa de mascotas perdidas"),
           toolbarOpacity: 0.8,
         ),
-        body: false
-            ? const Placeholder()
-            : !initialized
-                ? Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : GoogleMap(
-                    myLocationEnabled: true,
-                    markers: _markers,
-                    zoomControlsEnabled: false,
-                    mapType: MapType.normal,
-                    initialCameraPosition: CameraPosition(
-                        target: LatLng(_locationData.latitude ?? 0.00,
-                            _locationData.longitude ?? 0.0),
-                        zoom: 14),
-                    onMapCreated: (GoogleMapController controller) {
-                      _controller.complete(controller);
-                    },
-                  ),
+        body: !initialized
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : GoogleMap(
+                myLocationEnabled: true,
+                markers: _markers,
+                zoomControlsEnabled: false,
+                mapType: MapType.normal,
+                initialCameraPosition: CameraPosition(
+                    target: LatLng(_locationData.latitude ?? 0.00,
+                        _locationData.longitude ?? 0.0),
+                    zoom: 14),
+                onMapCreated: (GoogleMapController controller) {
+                  _controller.complete(controller);
+                },
+              ),
         floatingActionButton: SpeedDial(
           animatedIcon: AnimatedIcons.menu_close,
           animatedIconTheme: const IconThemeData(size: 22.0),
@@ -127,22 +128,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (!initialized) {
       //phoneVerified = (await sharedPrefs.getPhoneVerified())!;
-
+      await authServices.checkPhoneVerification(context).then((value) {
+        dev.log("Telefono verificado?");
+        dev.log(value.toString());
+      });
       location.getLocation().then((currentLocation) {
-        setState(() {
-          _userLocation = location;
-          CameraUpdate cameraUpdate = CameraUpdate.newCameraPosition(
-              CameraPosition(
-                  target: LatLng(
-                      currentLocation.latitude!, currentLocation.longitude!),
-                  zoom: 14));
-          _controller.future.then((value) {
-            value.animateCamera(cameraUpdate);
-          });
+        if (this.mounted) {
+          setState(() {
+            _userLocation = location;
+            CameraUpdate cameraUpdate = CameraUpdate.newCameraPosition(
+                CameraPosition(
+                    target: LatLng(
+                        currentLocation.latitude!, currentLocation.longitude!),
+                    zoom: 14));
+            _controller.future.then((value) {
+              value.animateCamera(cameraUpdate);
+            });
 
-          _locationData = currentLocation;
-          initialized = true;
-        });
+            _locationData = currentLocation;
+            initialized = true;
+          });
+        }
       });
     }
   }
@@ -157,26 +163,28 @@ class _HomeScreenState extends State<HomeScreen> {
       var timeAgoString = timeago.format(timeAgo, locale: 'es');
       timeAgoString = timeAgoString.replaceAll("hace", "Hace");
 
-      setState(() {
-        //dev.log(_markers.length.toString());
-        //dev.log(element.status.toString());
-        //dev.log(element.location!.geopoint.toString());
-        _markers.add(Marker(
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              element.status == "Perdido"
-                  ? BitmapDescriptor.hueRed
-                  : BitmapDescriptor.hueGreen,
-            ),
-            markerId: MarkerId(element.id.toString()),
-            position: LatLng(element.location!.geopoint?.latitude ?? 0,
-                element.location!.geopoint?.longitude ?? 0),
-            infoWindow: InfoWindow(
-                title: element.details,
-                snippet: timeAgoString,
-                onTap: () {
-                  reportWidget.alertDialog(element, context);
-                })));
-      });
+      if (this.mounted) {
+        setState(() {
+          //dev.log(_markers.length.toString());
+          //dev.log(element.status.toString());
+          //dev.log(element.location!.geopoint.toString());
+          _markers.add(Marker(
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                element.status == "Perdido"
+                    ? BitmapDescriptor.hueRed
+                    : BitmapDescriptor.hueGreen,
+              ),
+              markerId: MarkerId(element.id.toString()),
+              position: LatLng(element.location!.geopoint?.latitude ?? 0,
+                  element.location!.geopoint?.longitude ?? 0),
+              infoWindow: InfoWindow(
+                  title: element.details,
+                  snippet: timeAgoString,
+                  onTap: () {
+                    reportWidget.alertDialog(element, context);
+                  })));
+        });
+      }
     });
   }
 }
