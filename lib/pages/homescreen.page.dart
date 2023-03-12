@@ -34,11 +34,11 @@ class _HomeScreenState extends State<HomeScreen> {
   bool initialized = false;
   ReportWidget reportWidget = ReportWidget();
   UserServices userServices = UserServices();
-  late bool phoneNumber;
-  
+  //late bool phoneVerified;
+  SharedPrefs sharedPrefs = SharedPrefs();
+
   @override
   void initState() {
-    
     if (!initialized) {
       dev.log("init");
       _getCurrentLocation();
@@ -56,23 +56,25 @@ class _HomeScreenState extends State<HomeScreen> {
           title: const Text("Mapa de mascotas perdidas"),
           toolbarOpacity: 0.8,
         ),
-        body: !initialized
-            ? Center(
-                child: CircularProgressIndicator(),
-              )
-            : GoogleMap(
-                myLocationEnabled: true,
-                markers: _markers,
-                zoomControlsEnabled: false,
-                mapType: MapType.normal,
-                initialCameraPosition: CameraPosition(
-                    target: LatLng(_locationData.latitude ?? 0.00,
-                        _locationData.longitude ?? 0.0),
-                    zoom: 14),
-                onMapCreated: (GoogleMapController controller) {
-                  _controller.complete(controller);
-                },
-              ),
+        body: false
+            ? const Placeholder()
+            : !initialized
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : GoogleMap(
+                    myLocationEnabled: true,
+                    markers: _markers,
+                    zoomControlsEnabled: false,
+                    mapType: MapType.normal,
+                    initialCameraPosition: CameraPosition(
+                        target: LatLng(_locationData.latitude ?? 0.00,
+                            _locationData.longitude ?? 0.0),
+                        zoom: 14),
+                    onMapCreated: (GoogleMapController controller) {
+                      _controller.complete(controller);
+                    },
+                  ),
         floatingActionButton: SpeedDial(
           animatedIcon: AnimatedIcons.menu_close,
           animatedIconTheme: const IconThemeData(size: 22.0),
@@ -124,9 +126,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (!initialized) {
+      //phoneVerified = (await sharedPrefs.getPhoneVerified())!;
+
       location.getLocation().then((currentLocation) {
         setState(() {
-          dev.log("moving");
           _userLocation = location;
           CameraUpdate cameraUpdate = CameraUpdate.newCameraPosition(
               CameraPosition(
@@ -146,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   _addMarker() async {
     var reportList = await reportServices.getReports();
-
+    //dev.log(phoneVerified.toString());
     reportList.forEach((element) async {
       var date =
           DateTime.fromMillisecondsSinceEpoch(element.lastSeen!.seconds * 1000);
@@ -155,9 +158,9 @@ class _HomeScreenState extends State<HomeScreen> {
       timeAgoString = timeAgoString.replaceAll("hace", "Hace");
 
       setState(() {
-        dev.log(_markers.length.toString());
-        dev.log(element.status.toString());
-        dev.log(element.location!.geopoint.toString());
+        //dev.log(_markers.length.toString());
+        //dev.log(element.status.toString());
+        //dev.log(element.location!.geopoint.toString());
         _markers.add(Marker(
             icon: BitmapDescriptor.defaultMarkerWithHue(
               element.status == "Perdido"

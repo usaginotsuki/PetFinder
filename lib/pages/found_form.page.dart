@@ -474,13 +474,11 @@ class _FoundFormState extends State<FoundForm> {
           CameraUpdate cameraUpdate =
               CameraUpdate.newLatLngZoom(_pickedLocation, 15);
           _controller.future.then((value) {
-            dev.log("Camera moved");
             value.animateCamera(cameraUpdate);
           });
         });
 
         // Handle the result in your way
-        dev.log(_pickedLocation.toString());
       }
     });
   }

@@ -23,4 +23,14 @@ class SharedPrefs {
     final SharedPreferences prefs = await _prefs;
     return prefs.getString("userID");
   }
+
+  Future<bool> setPhoneVerified(bool value) async {
+    final SharedPreferences prefs = await _prefs;
+    return prefs.setBool("phoneVerified", value);
+  }
+
+  Future<bool?> getPhoneVerified() async {
+    final SharedPreferences prefs = await _prefs;
+    return prefs.getBool("phoneVerified");
+  }
 }

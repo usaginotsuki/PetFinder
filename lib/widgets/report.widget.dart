@@ -13,7 +13,6 @@ class ReportWidget {
   ReportServices reportServices = ReportServices();
   alertDialog(Report report, BuildContext context) async {
     String? userID = await sharedPrefs.getUserID();
-    dev.log(userID!);
     UserServices userServices = UserServices();
     ReportServices reportServices = ReportServices();
     //UserData user = await userServices.getUser(report.userId!);

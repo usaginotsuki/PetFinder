@@ -118,7 +118,6 @@ class _NearbyReportsState extends State<NearbyReports> {
     }
     location.getLocation().then((value) {
       _userLocation = GeoPoint(value.latitude!, value.longitude!);
-      dev.log(value.toString());
       var streamReport = reportServices.getReportsByLocation(
           value.latitude!, value.longitude!);
       streamReport.listen(

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'dart:developer' as dev;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:pet_finder/models/user.model.dart';
+import 'package:pet_finder/pages/phone_verification.page.dart';
 import 'package:pet_finder/services/shared_prefs.services.dart';
 import 'package:pet_finder/services/user.services.dart';
 import 'package:phone_form_field/phone_form_field.dart';
@@ -38,9 +39,7 @@ class AuthServices {
       String phoneNumber, String photoURL, BuildContext context) async {
     UserServices userServices = UserServices();
     try {
-      dev.log(email.toString());
-      dev.log(password.toString());
-      dev.log(phoneNumber);
+     
       var credential = await auth.createUserWithEmailAndPassword(
           email: email, password: password);
       dev.log(credential.toString());
@@ -59,6 +58,7 @@ class AuthServices {
           email: email, password: password);
       dev.log(credential.toString());
       await sharedPrefs.setUserID(credential.user!.uid);
+      checkPhoneVerification(context);
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => HomeScreen()));
       return true;
@@ -116,6 +116,7 @@ class AuthServices {
         await sharedPrefs.setUserID(userCredential.user!.uid);
 
         //if (!context.mounted) return;
+        checkPhoneVerification(context);
 
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => HomeScreen()));
@@ -137,5 +138,19 @@ class AuthServices {
     await sharedPrefs.setUserID("");
     await auth.signOut();
     await _googleSignIn.signOut();
+  }
+
+  Future<bool> checkPhoneVerification(context) async {
+    dev.log(auth.currentUser!.phoneNumber.toString());
+    if (auth.currentUser!.phoneNumber != null) {
+      await sharedPrefs.setPhoneVerified(true);
+      return true;
+    } else {
+      dev.log("no phone");
+      await sharedPrefs.setPhoneVerified(false);
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context) => PhoneVerification()));
+      return false;
+    }
   }
 }
