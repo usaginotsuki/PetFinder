@@ -26,7 +26,7 @@ class _PhoneVerificationState extends State<PhoneVerification> {
   bool messageSent = false;
   String OTP = "";
   late Timer _timer;
-  int _start = 10;
+  int _start = 30;
 
   @override
   void initState() {
@@ -84,7 +84,6 @@ class _PhoneVerificationState extends State<PhoneVerification> {
                       width: screenSize.size.width * 0.8),
                 ),
                 Padding(padding: EdgeInsets.only(top: 30)),
-                messageSent ? Text("Tiempo restante: $_start") : Container(),
                 !messageSent
                     ? TextButton(
                         onPressed: () {
@@ -97,16 +96,35 @@ class _PhoneVerificationState extends State<PhoneVerification> {
                           disabledForegroundColor: Colors.grey,
                         ),
                       )
-                    : TextButton(
-                        onPressed: () {
-                          sendConfirmation();
-                        },
-                        child: Text("Reenviar código de confirmación"),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: Color.fromARGB(255, 178, 53, 122),
-                          disabledForegroundColor: Colors.grey,
-                        ),
+                    : Column(
+                        children: [
+                          TextButton(
+                            onPressed: _start == 0
+                                ? () {
+                                    if (_start == 0) {
+                                      sendConfirmation();
+                                    }
+                                  }
+                                : null,
+                            child: Text("Reenviar código de confirmación"),
+                            style: TextButton.styleFrom(
+                              foregroundColor:
+                                  Color.fromARGB(255, 234, 234, 234),
+                              backgroundColor: Color.fromARGB(255, 26, 26, 174),
+                              disabledForegroundColor: Colors.grey,
+                            ),
+                          ),
+                          _start > 0
+                              ? Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.timer),
+                                    Text(" Espera $_start",
+                                        style: TextStyle(fontSize: 16)),
+                                  ],
+                                )
+                              : Container(),
+                        ],
                       ),
                 Padding(padding: EdgeInsets.only(top: 30)),
                 messageSent
@@ -162,6 +180,15 @@ class _PhoneVerificationState extends State<PhoneVerification> {
   }
 
   sendConfirmation() {
+    if (phoneNumber.length < 6) {
+      Fluttertoast.showToast(
+          backgroundColor: Colors.redAccent,
+          msg: "Ingresa tu número de teléfono",
+          gravity: ToastGravity.CENTER,
+          toastLength: Toast.LENGTH_SHORT,
+          fontSize: 16.0);
+      return;
+    }
     const oneSec = const Duration(seconds: 1);
     _timer = new Timer.periodic(
       oneSec,
@@ -178,8 +205,9 @@ class _PhoneVerificationState extends State<PhoneVerification> {
       },
     );
     messageSent = true;
+    _start = 30;
     setState(() {});
-    //authServices.sendConfirmationSMS(phoneNumber, context);
+    authServices.sendConfirmationSMS(phoneNumber, context);
   }
 
   submitOTP(BuildContext context) async {

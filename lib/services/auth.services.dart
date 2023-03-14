@@ -221,10 +221,11 @@ class AuthServices {
       dev.log(phoneAuthCredential.toString());
       if (phoneAuthCredential.token == null) {
         dev.log("token null");
+
         return false;
       }
-      auth.currentUser?.updatePhoneNumber(phoneAuthCredential);
-      userServices.updateUserPhoneNumber(
+      await auth.currentUser?.updatePhoneNumber(phoneAuthCredential);
+      await userServices.updateUserPhoneNumber(
           auth.currentUser!.uid, auth.currentUser!.phoneNumber.toString());
       dev.log("SubmitOTP valid");
       Navigator.pushReplacement(
