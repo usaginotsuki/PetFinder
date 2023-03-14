@@ -33,6 +33,20 @@ class UserServices {
     return user;
   }
 
+  Future<bool> updateUser(UserData user) async {
+    try {
+      var db = FirebaseFirestore.instance;
+      var id = user.id;
+      var searchdb =
+          await db.collection('users').where('id', isEqualTo: id).get();
+      var userID = searchdb.docs.first.id;
+      db.collection('users').doc(userID).update(user.toFirestore());
+      return true;
+    } on Exception catch (e) {
+      return false;
+    }
+  }
+
   updateUserPhoneNumber(String id, String phoneNumber) async {
     dev.log("Update user phone number");
     var db = FirebaseFirestore.instance;

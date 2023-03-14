@@ -42,9 +42,21 @@ class _MyReportsState extends State<MyReports> {
               itemBuilder: (context, index) {
                 return Card(
                   child: ListTile(
-                    trailing: Icon(Icons.info),
-                    title: Text(reports[index].details!),
-                    subtitle: Text(reports[index].type!),
+                    tileColor: reports[index].status == "Visto"
+                        ? Colors.green.shade100
+                        : Colors.red.shade100,
+                    trailing: Image.network(
+                      reports[index].photoUrl!,
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    ),
+                    title: Text(
+                      reports[index].details!,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     onTap: () {
                       reportWidget.alertDialog(reports[index], context);
                     },
@@ -53,7 +65,7 @@ class _MyReportsState extends State<MyReports> {
               },
             ),
           )
-        : //Loading screen 
+        : //Loading screen
         Scaffold(
             appBar: AppBar(
               title: Text("Mis reportes"),
@@ -63,7 +75,6 @@ class _MyReportsState extends State<MyReports> {
               child: CircularProgressIndicator(),
             ),
           );
-
   }
 
   getReports() async {

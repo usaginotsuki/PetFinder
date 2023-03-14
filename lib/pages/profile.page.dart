@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pet_finder/services/shared_prefs.services.dart';
 
 import '../models/user.model.dart';
@@ -24,12 +25,15 @@ class _ProfilePageState extends State<ProfilePage> {
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
   TextEditingController creationTime = TextEditingController();
+  late FToast fToast;
 
-  bool nameEdit = false;
+  bool profileEdit = false;
 
   @override
   void initState() {
     super.initState();
+    fToast = FToast();
+    fToast.init(context);
     sharedPrefs.getString('userID').then((value) {
       dev.log(value.toString());
       userServices.getUser(value.toString()).then((value) {
@@ -48,10 +52,12 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context);
+    floatingActionButtonLocation:
+    FloatingActionButtonLocation.endFloat;
     return Scaffold(
       drawer: drawerMenu(context),
       appBar: AppBar(
-        title: Text("Perfil de ${user.name}"),
+        title: Text("Mi perfil"),
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -59,15 +65,38 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircleAvatar(
-                radius: screenSize.size.width * 0.4,
-                backgroundImage: NetworkImage(user.photoURL!),
-              ),
+              Stack(children: [
+                CircleAvatar(
+                  radius: screenSize.size.width * 0.4,
+                  backgroundImage: NetworkImage(user.photoURL!),
+                ),
+                profileEdit
+                    ? Positioned(
+                        left: screenSize.size.width * 0.6,
+                        bottom: screenSize.size.width * 0.11,
+                        child: FloatingActionButton(
+                          onPressed: () {},
+                          child: Icon(Icons.camera_alt),
+                        ),
+                      )
+                    : Positioned(
+                        left: screenSize.size.width * 0.6,
+                        bottom: screenSize.size.width * 0.11,
+                        child: Container(),
+                      ),
+              ]),
               Padding(padding: EdgeInsets.only(top: 20)),
               Card(
                 child: ListTile(
                   leading: Icon(Icons.person),
                   title: Text("Nombre"),
+                  trailing: profileEdit
+                      ? IconButton(
+                          onPressed: () {
+                            editName();
+                          },
+                          icon: Icon(Icons.edit))
+                      : null,
                   subtitle: Text(user.name!,
                       style:
                           TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -92,18 +121,22 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               Padding(padding: EdgeInsets.only(top: 20)),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () {},
-                  child: Text("Editar perfil"),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Color.fromARGB(255, 80, 118, 184),
-                    disabledForegroundColor: Colors.grey,
-                  ),
-                ),
-              ),
+              profileEdit
+                  ? Container()
+                  : SizedBox(
+                      width: double.infinity,
+                      child: TextButton(
+                        onPressed: () {
+                          editProfile();
+                        },
+                        child: Text("Editar perfil"),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: Color.fromARGB(255, 80, 118, 184),
+                          disabledForegroundColor: Colors.grey,
+                        ),
+                      ),
+                    ),
               Padding(padding: EdgeInsets.only(top: 20)),
               SizedBox(
                 width: double.infinity,
@@ -121,6 +154,120 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
       ),
+    );
+  }
+
+  editProfile() {
+    profileEdit = true;
+    dev.log(profileEdit.toString());
+    setState(() {});
+  }
+
+  editName() {
+    final formKey = GlobalKey<FormState>();
+    TextEditingController name = TextEditingController();
+    name.text = user.name!;
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Editar nombre"),
+            content: Form(
+              key: formKey,
+              child: TextFormField(
+                controller: name,
+                decoration: InputDecoration(
+                  hintText: "Cambia tu nombre",
+                  labelText: "Nombre",
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty || value.length < 3) {
+                    return "Ingresa un nombre válido";
+                  }
+                  return null;
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.redAccent,
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text("Cancelar"),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    backgroundColor: Colors.greenAccent),
+                onPressed: () async {
+                  UserData newUser = user;
+                  newUser.name = name.text;
+                  bool done = await userServices.updateUser(newUser);
+                  if (done) {
+                    ToastCorrect("Se actualizó correctamente tu nombre");
+                    Navigator.of(context).pop();
+                    profileEdit = false;
+                    setState(() {});
+                  } else {
+                    ToastError("Hubo un error al actualizar el nombre");
+                  }
+                },
+                child: Text("Guardar"),
+              ),
+            ],
+          );
+        });
+  }
+
+  void ToastCorrect(String successMessage) {
+    return fToast.showToast(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25.0),
+          color: Colors.greenAccent,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check),
+            SizedBox(
+              width: 12.0,
+            ),
+            Text(successMessage),
+          ],
+        ),
+      ),
+      gravity: ToastGravity.BOTTOM,
+      toastDuration: Duration(seconds: 2),
+    );
+  }
+
+  void ToastError(String errorMessage) {
+    return fToast.showToast(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25.0),
+          color: Colors.redAccent,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error),
+            SizedBox(
+              width: 12.0,
+            ),
+            Text(errorMessage),
+          ],
+        ),
+      ),
+      gravity: ToastGravity.BOTTOM,
+      toastDuration: Duration(seconds: 2),
     );
   }
 }
