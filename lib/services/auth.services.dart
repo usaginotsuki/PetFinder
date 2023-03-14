@@ -70,17 +70,25 @@ class AuthServices {
   }
 
   Future<bool> loginWithGoogle(BuildContext context) async {
-    var db = FirebaseFirestore.instance;
-    final emailRef = db.collection("users");
-    final UserServices userServices = UserServices();
-    final GoogleSignIn googleSignIn = GoogleSignIn();
-    final GoogleSignInAccount? googleSignInAccount =
-        await googleSignIn.signIn();
-    dev.log(googleSignInAccount.toString());
-
-    await googleCreateAccount(googleSignInAccount, context);
-    dev.log("Current User");
-    dev.log(auth.currentUser.toString());
+    try {
+      var db = FirebaseFirestore.instance;
+      final emailRef = db.collection("users");
+      final UserServices userServices = UserServices();
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      final GoogleSignInAccount? googleSignInAccount =
+          await googleSignIn.signIn().catchError((onError) {
+        dev.log("Error $onError");
+      });
+      if (googleSignInAccount == null) {
+        return false;
+      }
+      dev.log(googleSignInAccount.toString());
+      await googleCreateAccount(googleSignInAccount, context);
+      dev.log("Current User");
+      dev.log(auth.currentUser.toString());
+    } catch (e) {
+      dev.log(e.toString());
+    }
     return false;
   }
 
@@ -171,49 +179,62 @@ class AuthServices {
   sendConfirmationSMS(String phoneNumber, BuildContext context) async {
     dev.log("send sms");
     dev.log(phoneNumber.toString());
-    auth.verifyPhoneNumber(
-      phoneNumber: "+" + phoneNumber,
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        dev.log("verif completed");
-        dev.log(credential.smsCode.toString());
-        dev.log(credential.token.toString());
-        var data = await FirebaseAuth.instance.signInWithCredential(credential);
-        dev.log(await data.toString());
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        dev.log("verif failed");
-        dev.log(e.toString());
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        dev.log("code sent");
-        verifId = verificationId;
-        dev.log(verificationId.toString());
-        dev.log(resendToken.toString());
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        dev.log("Timeout");
-        dev.log("Timeout" + verificationId.toString());
-      },
-    );
-  }
-
-  submitOTP(String OTP, BuildContext context) {
-    dev.log("submit otp");
-    dev.log(OTP.toString());
-    dev.log(verifId.toString());
-    PhoneAuthCredential phoneAuthCredential =
-        PhoneAuthProvider.credential(verificationId: verifId, smsCode: OTP);
     try {
-      auth.currentUser?.updatePhoneNumber(phoneAuthCredential);
-      userServices.updateUserPhoneNumber(
-          auth.currentUser!.uid, auth.currentUser!.phoneNumber.toString());
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
+      auth.verifyPhoneNumber(
+        phoneNumber: "+" + phoneNumber,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          dev.log("verif completed");
+          dev.log(credential.smsCode.toString());
+          dev.log(credential.token.toString());
+          var data =
+              await FirebaseAuth.instance.signInWithCredential(credential);
+          dev.log(await data.toString());
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          dev.log("verif failed");
+          dev.log(e.toString());
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          dev.log("code sent");
+          verifId = verificationId;
+          dev.log(verificationId.toString());
+          dev.log(resendToken.toString());
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          dev.log("Timeout");
+          dev.log("Timeout" + verificationId.toString());
+        },
       );
     } catch (e) {
       dev.log(e.toString());
     }
-    dev.log(auth.currentUser!.phoneNumber.toString());
+  }
+
+  Future<bool> submitOTP(String OTP, BuildContext context) async {
+    dev.log("submit otp");
+    dev.log(OTP.toString());
+    dev.log(verifId.toString());
+
+    try {
+      PhoneAuthCredential phoneAuthCredential =
+          PhoneAuthProvider.credential(verificationId: verifId, smsCode: OTP);
+      dev.log(phoneAuthCredential.toString());
+      if (phoneAuthCredential.token == null) {
+        dev.log("token null");
+        return false;
+      }
+      auth.currentUser?.updatePhoneNumber(phoneAuthCredential);
+      userServices.updateUserPhoneNumber(
+          auth.currentUser!.uid, auth.currentUser!.phoneNumber.toString());
+      dev.log("SubmitOTP valid");
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+      );
+      return true;
+    } catch (e) {
+      dev.log(e.toString());
+      return false;
+    }
   }
 }

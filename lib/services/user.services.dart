@@ -33,8 +33,12 @@ class UserServices {
     return user;
   }
 
-  updateUserPhoneNumber(String id, String phoneNumber) {
+  updateUserPhoneNumber(String id, String phoneNumber) async {
+    dev.log("Update user phone number");
     var db = FirebaseFirestore.instance;
-    db.collection('users').doc(id).update({"phoneNumber": phoneNumber});
+    var searchdb =
+        await db.collection('users').where('id', isEqualTo: id).get();
+    var userID = searchdb.docs.first.id;
+    db.collection('users').doc(userID).update({"phoneNumber": phoneNumber});
   }
 }
