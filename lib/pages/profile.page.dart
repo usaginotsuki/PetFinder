@@ -47,6 +47,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context);
     return Scaffold(
       drawer: drawerMenu(context),
       appBar: AppBar(
@@ -56,78 +57,64 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Form(
-                key: formKey,
-                child: Column(
-                  children: [
-                    TextField(
-                      readOnly: nameEdit,
-                      controller: nameController,
-                      decoration: InputDecoration(
-                        icon: Icon(Icons.person),
-                        labelText: 'Nombre',
-                        hintText: 'Nombre',
-                        suffixIcon: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              nameEdit = !nameEdit;
-                            });
-                          },
-                          child: Icon(Icons.edit),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        user.name = value;
-                      },
-                    ),
-                    TextField(
-                      enabled: false,
-                      controller: emailController,
-                      decoration: InputDecoration(
-                        icon: Icon(Icons.email),
-                        labelText: 'Email',
-                        hintText: 'Email',
-                      ),
-                      onChanged: (value) {
-                        user.email = value;
-                      },
-                    ),
-                    TextField(
-                      enabled: false,
-                      controller: phoneNumberController,
-                      decoration: InputDecoration(
-                        icon: Icon(Icons.phone),
-                        labelText: 'Teléfono',
-                        hintText: 'Teléfono',
-                      ),
-                      onChanged: (value) {
-                        user.phoneNumber = value;
-                      },
-                    ),
-                    TextField(
-                      enabled: false,
-                      controller: creationTime,
-                      decoration: InputDecoration(
-                        icon: Icon(Icons.calendar_today),
-                        labelText: 'Fecha de creación',
-                        hintText: 'Fecha de creación',
-                      ),
-                      onChanged: (value) {
-                        user.creationTime = user.creationTime;
-                      },
-                    ),
-                    TextField(
-                      enabled: false,
-                      controller: passwordController,
-                      decoration: InputDecoration(
-                        icon: Icon(Icons.lock),
-                        labelText: 'Contraseña',
-                        hintText: 'Contraseña',
-                      ),
-                      onChanged: (value) {},
-                    ),
-                  ],
+              CircleAvatar(
+                radius: screenSize.size.width * 0.4,
+                backgroundImage: NetworkImage(user.photoURL!),
+              ),
+              Padding(padding: EdgeInsets.only(top: 20)),
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.person),
+                  title: Text("Nombre"),
+                  subtitle: Text(user.name!,
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.phone),
+                  title: Text("Número de teléfono"),
+                  subtitle: Text(user.phoneNumber!,
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.email),
+                  title: Text("Correo electrónico"),
+                  subtitle: Text(user.email!,
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              Padding(padding: EdgeInsets.only(top: 20)),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () {},
+                  child: Text("Editar perfil"),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Color.fromARGB(255, 80, 118, 184),
+                    disabledForegroundColor: Colors.grey,
+                  ),
+                ),
+              ),
+              Padding(padding: EdgeInsets.only(top: 20)),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () {},
+                  child: Text("Cambiar contraseña"),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Color.fromARGB(255, 0, 0, 0),
+                    backgroundColor: Colors.redAccent,
+                    disabledForegroundColor: Colors.grey,
+                  ),
                 ),
               )
             ],
