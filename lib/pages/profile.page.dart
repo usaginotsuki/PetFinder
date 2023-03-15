@@ -1,6 +1,10 @@
+import 'dart:io';
+
+import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pet_finder/services/shared_prefs.services.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../models/user.model.dart';
 import '../services/user.services.dart';
@@ -26,8 +30,10 @@ class _ProfilePageState extends State<ProfilePage> {
   TextEditingController confirmPasswordController = TextEditingController();
   TextEditingController creationTime = TextEditingController();
   late FToast fToast;
-
+  late File _image;
+  bool changingImage = false;
   bool profileEdit = false;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -66,16 +72,33 @@ class _ProfilePageState extends State<ProfilePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Stack(children: [
-                CircleAvatar(
-                  radius: screenSize.size.width * 0.4,
-                  backgroundImage: NetworkImage(user.photoURL!),
-                ),
+                !changingImage
+                    ? CircleAvatar(
+                        radius: screenSize.size.width * 0.4,
+                        backgroundImage: NetworkImage(user.photoURL!),
+                      )
+                    : CircularProgressIndicator(
+                        color: Colors.blue,
+                        value: 0.5,
+                      ),
                 profileEdit
                     ? Positioned(
                         left: screenSize.size.width * 0.6,
                         bottom: screenSize.size.width * 0.11,
                         child: FloatingActionButton(
-                          onPressed: () {},
+                          onPressed: () async {
+                            final pickedFile = await _picker.pickImage(
+                                source: ImageSource.gallery,
+                                imageQuality: 50,
+                                maxWidth: 600);
+                            if (pickedFile != null) {
+                              _image = File(pickedFile.path);
+                              saveNewFile();
+                              setState(() {});
+                            } else {
+                              dev.log('No image selected.');
+                            }
+                          },
                           child: Icon(Icons.camera_alt),
                         ),
                       )
@@ -204,23 +227,53 @@ class _ProfilePageState extends State<ProfilePage> {
                     foregroundColor: Colors.black,
                     backgroundColor: Colors.greenAccent),
                 onPressed: () async {
-                  UserData newUser = user;
-                  newUser.name = name.text;
-                  bool done = await userServices.updateUser(newUser);
-                  if (done) {
-                    ToastCorrect("Se actualizó correctamente tu nombre");
-                    Navigator.of(context).pop();
-                    profileEdit = false;
-                    setState(() {});
-                  } else {
-                    ToastError("Hubo un error al actualizar el nombre");
-                  }
+                  await changeName(name, context);
                 },
                 child: Text("Guardar"),
               ),
             ],
           );
         });
+  }
+
+  Future<void> changeName(
+      TextEditingController name, BuildContext context) async {
+    UserData newUser = user;
+    newUser.name = name.text;
+    bool done = await userServices.updateUser(newUser);
+    if (done) {
+      ToastCorrect("Se actualizó correctamente tu nombre");
+      Navigator.of(context).pop();
+      profileEdit = false;
+      setState(() {});
+    } else {
+      ToastError("Hubo un error al actualizar el nombre");
+    }
+  }
+
+  void saveNewFile() async {
+    final cloudinary = CloudinaryPublic('dmx1v3oeu', 'hsvfa23f', cache: false);
+    try {
+      final response = await cloudinary.uploadFile(
+        CloudinaryFile.fromFile(_image.path,
+            resourceType: CloudinaryResourceType.Image),
+      );
+      dev.log(response.secureUrl);
+      UserData newUser = user;
+      newUser.photoURL = response.secureUrl;
+      try {
+        await userServices.updateUser(newUser);
+        user.photoURL = response.secureUrl;
+        setState(() {});
+      } catch (e) {
+        dev.log(e.toString());
+      }
+
+      ToastCorrect("Foto de perfil actualizada");
+    } catch (e) {
+      dev.log(e.toString());
+      ToastError("Hubo un error al actualizar la foto de perfil");
+    }
   }
 
   void ToastCorrect(String successMessage) {
