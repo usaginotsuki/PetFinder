@@ -162,13 +162,28 @@ class _HomeScreenState extends State<HomeScreen> {
       var timeAgo = DateTime.now().subtract(DateTime.now().difference(date));
       var timeAgoString = timeago.format(timeAgo, locale: 'es');
       timeAgoString = timeAgoString.replaceAll("hace", "Hace");
+      var timeAgoSeconds = timeAgo.millisecondsSinceEpoch;
+      double opacity = 1;
+      Duration difference = DateTime.now().difference(date);
+      //dev.log(difference.inMinutes.toString());
+      if (difference.inMinutes < 60) {
+        opacity = 1;
+      }
+      if (difference.inMinutes >= 60) {
+        opacity = 0.8 - difference.inDays.toInt() * 0.1;
+        if (opacity < 0.1) {
+          opacity = 0.1;
+        }
+        if (difference.inDays > 6) {
+          opacity = 0.0;
+        }
+      }
+      dev.log(opacity.toString());
 
       if (this.mounted) {
         setState(() {
-          //dev.log(_markers.length.toString());
-          //dev.log(element.status.toString());
-          //dev.log(element.location!.geopoint.toString());
           _markers.add(Marker(
+              alpha: opacity,
               icon: BitmapDescriptor.defaultMarkerWithHue(
                 element.status == "Perdido"
                     ? BitmapDescriptor.hueRed

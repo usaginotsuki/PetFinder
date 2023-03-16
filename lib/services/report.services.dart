@@ -11,7 +11,10 @@ class ReportServices {
     CollectionReference reports =
         FirebaseFirestore.instance.collection('reporte');
 
-    var reportList = await reports.get();
+    var reportList = await reports
+        .where('lastSeen',
+            isGreaterThan: DateTime.now().subtract(Duration(days: 7)))
+        .get();
     reportList.docs.forEach((element) {
       ListReport.add(Report.fromDocument(element));
     });
@@ -71,6 +74,4 @@ class ReportServices {
         .within(center: center, radius: radius, field: field);
     return stream;
   }
-
-  
 }

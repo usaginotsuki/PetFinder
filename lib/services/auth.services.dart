@@ -37,15 +37,21 @@ class AuthServices {
     }
   }
 
-  signUpWithEmail(String email, String password, String name,
-      String phoneNumber, String photoURL, BuildContext context) async {
+  signUpWithEmail(
+      String email,
+      String password,
+      String name,
+      String phonePrefix,
+      String phoneNumber,
+      String photoURL,
+      BuildContext context) async {
     UserServices userServices = UserServices();
     try {
       var credential = await auth.createUserWithEmailAndPassword(
           email: email, password: password);
       dev.log(credential.toString());
       UserData user = UserData(credential.user!.uid, name, email,
-          Timestamp.now(), phoneNumber, photoURL, false);
+          Timestamp.now(), phonePrefix, phoneNumber, photoURL, false);
       userServices.createUser(user);
     } catch (e) {
       dev.log(e.toString());
@@ -127,6 +133,7 @@ class AuthServices {
               userCredential.user!.email.toString(),
               Timestamp.now(),
               userCredential.user!.phoneNumber.toString(),
+              userCredential.user!.phoneNumber.toString(),
               userCredential.user!.photoURL.toString(),
               userCredential.user!.emailVerified);
           dev.log(user.email.toString());
@@ -170,8 +177,12 @@ class AuthServices {
     } else {
       dev.log("no phone");
       await sharedPrefs.setPhoneVerified(false);
-      Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) => PhoneVerification()));
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => PhoneVerification(
+                    newUser: true,
+                  )));
       return false;
     }
   }
@@ -212,19 +223,15 @@ class AuthServices {
 
   Future<bool> submitOTP(String OTP, BuildContext context) async {
     dev.log("submit otp");
-    dev.log(OTP.toString());
-    dev.log(verifId.toString());
 
     try {
       PhoneAuthCredential phoneAuthCredential =
-          PhoneAuthProvider.credential(verificationId: verifId, smsCode: OTP);
-      dev.log(phoneAuthCredential.toString());
-      if (phoneAuthCredential.token == null) {
-        dev.log("token null");
+          await PhoneAuthProvider.credential(
+              verificationId: verifId, smsCode: OTP);
+      dev.log(await phoneAuthCredential.toString());
 
-        return false;
-      }
       await auth.currentUser?.updatePhoneNumber(phoneAuthCredential);
+
       await userServices.updateUserPhoneNumber(
           auth.currentUser!.uid, auth.currentUser!.phoneNumber.toString());
       dev.log("SubmitOTP valid");

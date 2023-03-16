@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pet_finder/pages/phone_verification.page.dart';
 import 'package:pet_finder/services/shared_prefs.services.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -21,7 +22,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   SharedPrefs sharedPrefs = SharedPrefs();
   UserServices userServices = UserServices();
-  UserData user = UserData('', '', '', null, '', '', false);
+  UserData user = UserData('', '', '', null, '', '', '', false);
   final formKey = GlobalKey<FormState>();
   TextEditingController nameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
@@ -77,9 +78,15 @@ class _ProfilePageState extends State<ProfilePage> {
                         radius: screenSize.size.width * 0.4,
                         backgroundImage: NetworkImage(user.photoURL!),
                       )
-                    : CircularProgressIndicator(
-                        color: Colors.blue,
-                        value: 0.5,
+                    : SizedBox(
+                        height: screenSize.size.width * 0.4,
+                        width: screenSize.size.width * 0.4,
+                        child: Transform.scale(
+                          scale: 0.90,
+                          child: CircularProgressIndicator(
+                            color: Colors.blue,
+                          ),
+                        ),
                       ),
                 profileEdit
                     ? Positioned(
@@ -92,9 +99,11 @@ class _ProfilePageState extends State<ProfilePage> {
                                 imageQuality: 50,
                                 maxWidth: 600);
                             if (pickedFile != null) {
+                              setState(() {
+                                changingImage = true;
+                              });
                               _image = File(pickedFile.path);
                               saveNewFile();
-                              setState(() {});
                             } else {
                               dev.log('No image selected.');
                             }
@@ -129,7 +138,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: ListTile(
                   leading: Icon(Icons.phone),
                   title: Text("Número de teléfono"),
-                  subtitle: Text(user.phoneNumber!,
+                  trailing: profileEdit
+                      ? IconButton(
+                          onPressed: () {
+                            editPhone();
+                          },
+                          icon: Icon(Icons.edit))
+                      : null,
+                  subtitle: Text('+ ${user.phonePrefix!}0${user.phoneNumber!}',
                       style:
                           TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 ),
@@ -264,7 +280,9 @@ class _ProfilePageState extends State<ProfilePage> {
       try {
         await userServices.updateUser(newUser);
         user.photoURL = response.secureUrl;
-        setState(() {});
+        setState(() {
+          changingImage = false;
+        });
       } catch (e) {
         dev.log(e.toString());
       }
@@ -321,6 +339,16 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       gravity: ToastGravity.BOTTOM,
       toastDuration: Duration(seconds: 2),
+    );
+  }
+
+  void editPhone() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => PhoneVerification(
+                newUser: false,
+              )),
     );
   }
 }

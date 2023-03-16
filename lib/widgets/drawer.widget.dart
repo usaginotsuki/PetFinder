@@ -6,6 +6,7 @@ import 'package:pet_finder/pages/nearby_reports.dart';
 import 'package:pet_finder/pages/profile.page.dart';
 import 'package:pet_finder/services/auth.services.dart';
 import 'package:pet_finder/services/shared_prefs.services.dart';
+import 'dart:developer' as dev;
 
 @override
 Widget drawerMenu(BuildContext context) {
@@ -26,10 +27,13 @@ Widget drawerMenu(BuildContext context) {
           title: Text("Mapa"),
           trailing: Icon(Icons.map),
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => HomeScreen()),
-            );
+            dev.log(context.widget.toString());
+            if (context.widget.toString() != "HomeScreen") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HomeScreen()),
+              );
+            }
           },
         ),
         ListTile(

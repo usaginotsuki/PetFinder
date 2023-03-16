@@ -10,7 +10,8 @@ import 'dart:developer' as dev;
 import 'dart:async';
 
 class PhoneVerification extends StatefulWidget {
-  const PhoneVerification({super.key});
+  const PhoneVerification({super.key, required this.newUser});
+  final bool newUser;
 
   @override
   State<PhoneVerification> createState() => _PhoneVerificationState();
@@ -53,15 +54,22 @@ class _PhoneVerificationState extends State<PhoneVerification> {
                     ? Container()
                     : Padding(padding: EdgeInsets.only(top: 100)),
                 Padding(padding: EdgeInsets.only(top: 30)),
-                Text("Un paso mas",
-                    style:
-                        TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
+                widget.newUser
+                    ? Text("Un paso mas",
+                        style: TextStyle(
+                            fontSize: 25, fontWeight: FontWeight.bold))
+                    : Text("Verifica tu número de teléfono",
+                        style: TextStyle(
+                            fontSize: 25, fontWeight: FontWeight.bold)),
                 Padding(padding: EdgeInsets.only(top: 30)),
-                Text(
-                  "Confirma tu número de teléfono a través de un mensaje de texto.",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.normal),
-                  textAlign: TextAlign.center,
-                ),
+                widget.newUser
+                    ? Text(
+                        "Confirma tu número de teléfono a través de un mensaje de texto.",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.normal),
+                        textAlign: TextAlign.center,
+                      )
+                    : Container(),
                 Padding(padding: EdgeInsets.only(top: 30)),
                 PhoneFormField(
                   decoration: const InputDecoration(

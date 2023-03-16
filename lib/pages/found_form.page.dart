@@ -22,6 +22,7 @@ import 'dart:developer' as dev;
 import 'package:select_form_field/select_form_field.dart';
 
 import '../models/report.model.dart';
+import '../widgets/toast.services.dart';
 
 class FoundForm extends StatefulWidget {
   final String status;
@@ -34,6 +35,7 @@ class FoundForm extends StatefulWidget {
 class _FoundFormState extends State<FoundForm> {
   final formKey = GlobalKey<FormState>();
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController name = TextEditingController();
   ReportServices reportServices = ReportServices();
   TextEditingController description = TextEditingController();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
@@ -51,8 +53,9 @@ class _FoundFormState extends State<FoundForm> {
   int currentStep = 0;
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
-
+  Toasty toast = Toasty();
   //Step 1 checkers
+
   bool _mascotTypeSelected = false;
   bool dateSelected = false;
   bool imageSelected = false;
@@ -97,31 +100,19 @@ class _FoundFormState extends State<FoundForm> {
               if (_mascotTypeSelected && dateSelected && imageSelected) {
                 currentStep = currentStep + 1;
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Por favor completa todos los campos'),
-                  ),
-                );
+                toast.ToastError("Por favor completa los campos");
               }
             } else if (currentStep == 1) {
               if (placeSelected) {
                 currentStep = currentStep + 1;
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Por favor selecciona una ubicación'),
-                  ),
-                );
+                toast.ToastError("Por favor selecciona un lugar");
               }
             } else if (currentStep == 2) {
               if (sizeSelected && _formKey.currentState!.validate()) {
                 //currentStep = currentStep + 1;
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Por favor selecciona un tamaño'),
-                  ),
-                );
+                toast.ToastError("Por favor completa los campos");
               }
             }
 
@@ -162,7 +153,31 @@ class _FoundFormState extends State<FoundForm> {
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
                 child: Column(
                   children: [
+                    TextFormField(
+                      controller: name,
+                      decoration: InputDecoration(
+                        labelText: "Ingresa su nombre",
+                        hintText: "Nombre",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor ingresa una descripción';
+                        }
+                        return null;
+                      },
+                    ),
+                    Padding(padding: EdgeInsets.only(top: 20)),
                     SelectFormField(
+                      decoration: InputDecoration(
+                        labelText: "Que tipo de mascota es?",
+                        hintText: "Tipo de mascota",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
                       style: const TextStyle(color: Colors.black, fontSize: 20),
                       type: SelectFormFieldType.dropdown, // or can be dialog
                       labelText: 'Que tipo de mascota es?',
@@ -174,7 +189,7 @@ class _FoundFormState extends State<FoundForm> {
                         });
                       },
                     ),
-                    const Padding(padding: EdgeInsets.only(top: 50)),
+                    const Padding(padding: EdgeInsets.only(top: 20)),
                     GestureDetector(
                       child: dateSelected
                           ? Container(
@@ -239,12 +254,8 @@ class _FoundFormState extends State<FoundForm> {
                               date = DateTime.now();
                             });
 
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                    'La fecha seleccionada no puede ser mayor a la fecha actual'),
-                              ),
-                            );
+                            toast.ToastError(
+                                'La fecha no puede ser mayor a la actual');
                           } else {
                             dateSelected = true;
                             setState(() {
@@ -255,7 +266,7 @@ class _FoundFormState extends State<FoundForm> {
                         }, currentTime: DateTime.now(), locale: LocaleType.es);
                       },
                     ),
-                    const Padding(padding: EdgeInsets.only(top: 50)),
+                    const Padding(padding: EdgeInsets.only(top: 20)),
                     GestureDetector(
                       child: Container(
                         decoration: BoxDecoration(
@@ -279,7 +290,7 @@ class _FoundFormState extends State<FoundForm> {
                       onTap: () async {
                         final pickedFile = await _picker.pickImage(
                             source: ImageSource.gallery,
-                            imageQuality: 50,
+                            imageQuality: 80,
                             maxWidth: 600);
 
                         if (pickedFile != null) {
@@ -293,7 +304,7 @@ class _FoundFormState extends State<FoundForm> {
                         }
                       },
                     ),
-                    const Padding(padding: EdgeInsets.only(top: 30)),
+                    const Padding(padding: EdgeInsets.only(top: 20)),
                     Container(
                       child: imageSelected
                           ? Image.file(

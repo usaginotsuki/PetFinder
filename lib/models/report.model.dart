@@ -33,6 +33,7 @@ class Position {
 class Report {
   String? id;
   String? type;
+  
   String? size;
   String? status;
   String? details;

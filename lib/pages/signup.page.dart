@@ -29,6 +29,7 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _showPassword = false;
   bool _showPassword2 = false;
   AuthServices _auth = AuthServices();
+  String phonePrefix = '';
   String phoneNumber = '';
   bool imageSelected = false;
   final ImagePicker _picker = ImagePicker();
@@ -146,7 +147,6 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                       PhoneFormField(
                         decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
                           hintText: 'Teléfono',
                           labelText: 'Ingresa tu teléfono',
                           icon: Icon(Icons.phone),
@@ -154,8 +154,9 @@ class _SignUpPageState extends State<SignUpPage> {
                         defaultCountry: IsoCode.EC,
                         //controller: phoneController,
                         onChanged: (value) => {
+                          phonePrefix = value!.countryCode.toString(),
                           dev.log(value.toString()),
-                          phoneNumber = '${value!.countryCode}0${value.nsn}',
+                          phoneNumber = '0${value.nsn}',
                           dev.log(phoneNumber.toString())
                         },
 
@@ -251,6 +252,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                   widget.email,
                                   password.text.trim(),
                                   name.text.trim(),
+                                  phonePrefix,
                                   phoneNumber,
                                   response.secureUrl,
                                   context);

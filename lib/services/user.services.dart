@@ -49,10 +49,15 @@ class UserServices {
 
   updateUserPhoneNumber(String id, String phoneNumber) async {
     dev.log("Update user phone number");
+    var phonePrefix = phoneNumber.substring(0, 3);
+    phoneNumber = phoneNumber.substring(4);
     var db = FirebaseFirestore.instance;
     var searchdb =
         await db.collection('users').where('id', isEqualTo: id).get();
     var userID = searchdb.docs.first.id;
-    db.collection('users').doc(userID).update({"phoneNumber": phoneNumber});
+    db
+        .collection('users')
+        .doc(userID)
+        .update({"phoneNumber": phoneNumber, "phonePrefix": phonePrefix});
   }
 }
