@@ -13,16 +13,17 @@ import 'package:geoflutterfire2/geoflutterfire2.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
+import 'package:location_picker_flutter_map/location_picker_flutter_map.dart';
 import 'package:pet_finder/pages/homescreen.page.dart';
 import 'package:pet_finder/services/report.services.dart';
 import 'package:pet_finder/services/shared_prefs.services.dart';
 import 'package:pet_finder/widgets/drawer.widget.dart';
-import 'package:place_picker/place_picker.dart';
 import 'dart:developer' as dev;
 import 'package:select_form_field/select_form_field.dart';
+import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
 
 import '../models/report.model.dart';
-import '../widgets/toast.services.dart';
+import '../widgets/toast.widget.dart';
 
 class FoundForm extends StatefulWidget {
   final String status;
@@ -40,9 +41,9 @@ class _FoundFormState extends State<FoundForm> {
   TextEditingController description = TextEditingController();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final List<Map<String, dynamic>> _categories = [
-    {'value': 'dog', 'label': 'Perro', 'icon': Icon(Icons.pets)},
-    {'value': 'cat', 'label': 'Gato'},
-    {'value': 'other', 'label': 'Otro'}
+    {'value': 'dog', 'label': 'Perro 🐶'},
+    {'value': 'cat', 'label': 'Gato 🐱'},
+    {'value': 'other', 'label': 'Otro 🦭'}
   ];
   final List<Map<String, dynamic>> _sizes = [
     {'value': 'small', 'label': 'Pequeño', 'icon': Icon(Icons.pets)},
@@ -59,7 +60,7 @@ class _FoundFormState extends State<FoundForm> {
   bool _mascotTypeSelected = false;
   bool dateSelected = false;
   bool imageSelected = false;
-
+  bool nameSelected = false;
   //Step 2 checkers
   bool placeSelected = false;
 
@@ -97,7 +98,10 @@ class _FoundFormState extends State<FoundForm> {
           },
           onStepContinue: () {
             if (currentStep == 0) {
-              if (_mascotTypeSelected && dateSelected && imageSelected) {
+              if (_mascotTypeSelected &&
+                  dateSelected &&
+                  imageSelected &&
+                  nameSelected) {
                 currentStep = currentStep + 1;
               } else {
                 toast.ToastError("Por favor completa los campos");
@@ -168,6 +172,13 @@ class _FoundFormState extends State<FoundForm> {
                         }
                         return null;
                       },
+                      onChanged: (value) {
+                        if (value.length > 1 && value.isNotEmpty) {
+                          setState(() {
+                            nameSelected = true;
+                          });
+                        }
+                      },
                     ),
                     Padding(padding: EdgeInsets.only(top: 20)),
                     SelectFormField(
@@ -178,7 +189,7 @@ class _FoundFormState extends State<FoundForm> {
                           borderRadius: BorderRadius.circular(5),
                         ),
                       ),
-                      style: const TextStyle(color: Colors.black, fontSize: 20),
+                      style: const TextStyle(color: Colors.black),
                       type: SelectFormFieldType.dropdown, // or can be dialog
                       labelText: 'Que tipo de mascota es?',
                       items: _categories,
@@ -472,13 +483,26 @@ class _FoundFormState extends State<FoundForm> {
   void showPlacePicker() async {
     Location location = Location();
     location.getLocation().then((value) async {
-      LocationResult result =
-          await Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => PlacePicker(
-                    "AIzaSyC8FOgSCxtooY65jztOv-iMwb8_3dPI9AU",
-                    displayLocation: LatLng(value.latitude!, value.longitude!),
-                  )));
-      if (result.latLng != null) {
+      Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => Scaffold(
+                body: FlutterLocationPicker(
+                  trackMyPosition: true,
+                  onPicked: (pickedData) {
+                    setState(() {
+                      placeSelected = true;
+                      _pickedLocation = LatLng(pickedData.latLong.latitude,
+                          pickedData.latLong.longitude);
+                      CameraUpdate cameraUpdate =
+                          CameraUpdate.newLatLngZoom(_pickedLocation, 15);
+                      _controller.future.then((value) {
+                        value.animateCamera(cameraUpdate);
+                        Navigator.pop(context);
+                      });
+                    });
+                  },
+                ),
+              )));
+      /*if (result.latLng != null) {
         setState(() {
           placeSelected = true;
           _pickedLocation = result.latLng!;
@@ -490,7 +514,7 @@ class _FoundFormState extends State<FoundForm> {
         });
 
         // Handle the result in your way
-      }
+      }*/
     });
   }
 
@@ -509,8 +533,17 @@ class _FoundFormState extends State<FoundForm> {
       Timestamp timeStamp = Timestamp.fromDate(date);
       var userID = await prefs.getUserID();
       dev.log(loc.toString());
-      Report report = Report("", _mascotTypeValue, size, widget.status,
-          description.text, response.secureUrl, userID, loc, timeStamp);
+      Report report = Report(
+          "",
+          _mascotTypeValue,
+          name.text,
+          size,
+          widget.status,
+          description.text,
+          response.secureUrl,
+          userID,
+          loc,
+          timeStamp);
       dev.log(report.toString());
       await reportServices.saveReport(report);
 

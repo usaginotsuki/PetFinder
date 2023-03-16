@@ -33,7 +33,7 @@ class Position {
 class Report {
   String? id;
   String? type;
-  
+  String? name;
   String? size;
   String? status;
   String? details;
@@ -42,17 +42,18 @@ class Report {
   Position? location;
   Timestamp? lastSeen;
 
-  Report(this.id, this.type, this.size, this.status, this.details,
+  Report(this.id, this.type, this.name, this.size, this.status, this.details,
       this.photoUrl, this.userId, this.location, this.lastSeen);
 
   factory Report.fromDocument(DocumentSnapshot doc) {
     return Report(
-        doc['id'],
-        doc['type'],
-        doc['size'],
-        doc['status'],
-        doc['details'],
-        doc['photoUrl'],
+        doc['id'] ?? '',
+        doc['type'] ?? '',
+        doc['name'] ?? '',
+        doc['size'] ?? '',
+        doc['status'] ?? '',
+        doc['details'] ?? '',
+        doc['photoUrl'] ?? '',
         doc['userId'],
         Position.fromDocument(doc['location']),
         doc['lastSeen']);
@@ -66,6 +67,7 @@ class Report {
     return Report(
       data?['id'] ?? '',
       data?['type'] ?? '',
+      data?['name'] ?? '',
       data?['size'] ?? '',
       data?['status'] ?? '',
       data?['details'] ?? '',
@@ -80,6 +82,7 @@ class Report {
     return {
       'id': id ?? '',
       'type': type ?? '',
+      'name': name ?? '',
       'size': size ?? '',
       'status': status ?? '',
       'details': details ?? '',
