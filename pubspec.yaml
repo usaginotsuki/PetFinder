@@ -49,11 +49,11 @@ dependencies:
   location: ^4.3.0
   easy_image_viewer: ^1.2.0
   map_launcher: ^2.5.0+1
-  intl: ^0.17.0
+  intl: ^0.18.1
   timeago: ^3.3.0
   flutter_speed_dial: ^6.2.0
   select_form_field: ^2.2.0
-  flutter_datetime_picker: ^1.5.1
+  flutter_datetime_picker_plus: ^2.1.0
   image_picker: ^0.8.6+4
   place_picker: ^0.10.0
   cloudinary_public: ^0.20.0
@@ -64,6 +64,8 @@ dependencies:
   flutter_otp_text_field: ^1.1.1
   google_maps_place_picker_mb: ^3.0.1
   location_picker_flutter_map: ^1.1.5
+  map_location_picker: ^1.2.1
+  map_picker: ^0.0.3
 
  
 

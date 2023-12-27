@@ -1,14 +1,12 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloudinary_public/cloudinary_public.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 import 'package:geoflutterfire2/geoflutterfire2.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -20,10 +18,11 @@ import 'package:pet_finder/services/shared_prefs.services.dart';
 import 'package:pet_finder/widgets/drawer.widget.dart';
 import 'dart:developer' as dev;
 import 'package:select_form_field/select_form_field.dart';
-import 'package:google_maps_place_picker_mb/google_maps_place_picker.dart';
+import 'package:map_picker/map_picker.dart';
 
 import '../models/report.model.dart';
 import '../widgets/toast.widget.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class FoundForm extends StatefulWidget {
   final String status;
@@ -73,10 +72,15 @@ class _FoundFormState extends State<FoundForm> {
   late File _image;
   LatLng _pickedLocation = LatLng(0, 0);
   String size = '';
+  MapPickerController mapPickerController = MapPickerController();
+  CameraPosition cameraPosition = const CameraPosition(
+    target: LatLng(41.311158, 69.279737),
+    zoom: 14.4746,
+  );
+  var textController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context);
     return Scaffold(
       key: _scaffoldKey,
       drawer: drawerMenu(context),
@@ -160,7 +164,7 @@ class _FoundFormState extends State<FoundForm> {
                     TextFormField(
                       controller: name,
                       decoration: InputDecoration(
-                        labelText: "Ingresa su nombre",
+                        labelText: "Ingresa tu nombre",
                         hintText: "Nombre",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(5),
@@ -347,7 +351,7 @@ class _FoundFormState extends State<FoundForm> {
                     },
                     child: Text(
                       widget.status == "Visto"
-                          ? "Donde lo viste?"
+                          ? "Donde lo viste  ?"
                           : "Donde desapareció?",
                       style: TextStyle(color: Colors.white),
                     ),
@@ -356,6 +360,18 @@ class _FoundFormState extends State<FoundForm> {
                           MaterialStateProperty.all<Color>(Colors.blue),
                     ),
                   )),
+              Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    "Selecciona el lugar en el mapa11",
+                    style: TextStyle(color: Colors.black),
+                  )),
+              /*Container(
+                  child: mapPicker.MapLocationPicker(
+                borderRadius: BorderRadius.circular(),
+                apiKey: "AIzaSyASF-2-vcXOVoEiUL7_0QuXVCZBkICSlKU",
+                onNext: (mapPicker.GeocodingResult? result) {},
+              )),*/
               Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: placeSelected
@@ -372,7 +388,9 @@ class _FoundFormState extends State<FoundForm> {
                           width: screenSize.size.width * 0.8,
                           child: GoogleMap(
                               onMapCreated: (GoogleMapController controller) {
-                                _controller.complete(controller);
+                                if (!_controller.isCompleted) {
+                                  _controller.complete(controller);
+                                } else {}
                               },
                               initialCameraPosition: CameraPosition(
                                   target: _pickedLocation, zoom: 15),
@@ -485,23 +503,107 @@ class _FoundFormState extends State<FoundForm> {
     location.getLocation().then((value) async {
       Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => Scaffold(
-                body: FlutterLocationPicker(
-                  trackMyPosition: true,
-                  onPicked: (pickedData) {
-                    setState(() {
-                      placeSelected = true;
-                      _pickedLocation = LatLng(pickedData.latLong.latitude,
-                          pickedData.latLong.longitude);
-                      CameraUpdate cameraUpdate =
-                          CameraUpdate.newLatLngZoom(_pickedLocation, 15);
-                      _controller.future.then((value) {
-                        value.animateCamera(cameraUpdate);
-                        Navigator.pop(context);
-                      });
-                    });
-                  },
+                  body: Stack(alignment: Alignment.topCenter, children: [
+                MapPicker(
+                  // pass icon widget
+                  iconWidget: SvgPicture.asset(
+                    "assets/location_icon.svg",
+                    height: 30,
+                  ),
+                  //add map picker controller
+                  mapPickerController: mapPickerController,
+                  child: GoogleMap(
+                    myLocationEnabled: true,
+                    zoomControlsEnabled: false,
+                    // hide location button
+                    myLocationButtonEnabled: true,
+                    mapType: MapType.normal,
+                    //  camera position
+                    initialCameraPosition: CameraPosition(
+                      target: LatLng(value.latitude!, value.longitude!),
+                      zoom: 18,
+                    ),
+                    onMapCreated: (GoogleMapController controller) {
+                      if (!_controller.isCompleted) {
+                        _controller.complete(controller);
+                      } else {}
+                    },
+                    onCameraMoveStarted: () {
+                      // notify map is moving
+                      mapPickerController.mapMoving!();
+                    },
+                    onCameraMove: (cameraPosition) {
+                      this.cameraPosition = cameraPosition;
+                    },
+                    onCameraIdle: () async {
+                      // notify map stopped moving
+                      mapPickerController.mapFinishedMoving!();
+                      //get address name from camera position
+
+                      // update the ui with the address
+                    },
+                  ),
                 ),
-              )));
+                Positioned(
+                  top: MediaQuery.of(context).viewPadding.top + 20,
+                  width: MediaQuery.of(context).size.width - 50,
+                  height: 50,
+                  child: TextFormField(
+                    maxLines: 3,
+                    textAlign: TextAlign.center,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.zero,
+                        border: InputBorder.none),
+                    controller: textController,
+                  ),
+                ),
+                Positioned(
+                  bottom: 24,
+                  left: 24,
+                  right: 24,
+                  child: SizedBox(
+                    height: 50,
+                    child: TextButton(
+                      child: const Text(
+                        "Seleccionar",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          fontStyle: FontStyle.normal,
+                          color: Color(0xFFFFFFFF),
+                          fontSize: 19,
+                          // height: 19/19,
+                        ),
+                      ),
+                      onPressed: () {
+                        print(
+                            "Location ${cameraPosition.target.latitude} ${cameraPosition.target.longitude}");
+                        print("Address: ${textController.text}");
+                        placeSelected = true;
+                        _pickedLocation = LatLng(cameraPosition.target.latitude,
+                            cameraPosition.target.longitude);
+                        CameraUpdate cameraUpdate =
+                            CameraUpdate.newLatLngZoom(_pickedLocation, 15);
+                        _controller.future.then((value) {
+                          value.animateCamera(cameraUpdate);
+                          Navigator.pop(context);
+                        });
+                      },
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            const Color(0xFFA3080C)),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15.0),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              ]))));
+
       /*if (result.latLng != null) {
         setState(() {
           placeSelected = true;
