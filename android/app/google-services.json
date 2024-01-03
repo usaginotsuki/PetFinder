@@ -14,7 +14,68 @@
       },
       "oauth_client": [
         {
-          "client_id": "1056921851714-4hra1fj8asj02at4huqqcvrb1dfa7kv2.apps.googleusercontent.com",
+          "client_id": "1056921851714-2al9nan7im3nkuf2jfe0dlae13566jk3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pet_finder",
+            "certificate_hash": "3e4350bb6910b6ae1e2fef387c26b8b879653c65"
+          }
+        },
+        {
+          "client_id": "1056921851714-lk0heutfggl9s7h7idtlb3r3hjnor25d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pet_finder",
+            "certificate_hash": "1bf8454b8a275c233a6c9b2a376ecc366d1493b5"
+          }
+        },
+        {
+          "client_id": "1056921851714-mge06qqqepvjh9r5lst6at8tust58cbi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pet_finder",
+            "certificate_hash": "a4fcaaf838b135ca488d5f8f02a6a4fbebbc674a"
+          }
+        },
+        {
+          "client_id": "1056921851714-cm5re32nkajkrfatbevb98saj4tnodk9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDML5HSk8MdUQT-Z2e1Y1IdKSmGHdaXA3M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1056921851714-4hra1fj8asj02at4huqqcvrb1dfa7kv2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1056921851714:android:7416ce4b1902ff24385adb",
+        "android_client_info": {
+          "package_name": "com.hachigamiDev.pet_finder"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1056921851714-ufp50grl690jsi4un7umi9ue8hfp5pv5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hachigamiDev.pet_finder",
+            "certificate_hash": "1bf8454b8a275c233a6c9b2a376ecc366d1493b5"
+          }
+        },
+        {
+          "client_id": "1056921851714-cm5re32nkajkrfatbevb98saj4tnodk9.apps.googleusercontent.com",
           "client_type": 3
         }
       ],

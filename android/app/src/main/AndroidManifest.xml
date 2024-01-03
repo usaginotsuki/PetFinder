@@ -4,7 +4,7 @@
 
    <application
         
-        android:label="pet_finder"
+        android:label="Pet Finder - Encuentra a tu mascota"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         

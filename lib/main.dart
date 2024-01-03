@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'PetFinder - Encuentra tu mascota',
       theme: ThemeData(
         primarySwatch: Colors.pink,
       ),

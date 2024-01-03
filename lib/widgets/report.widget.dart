@@ -113,7 +113,7 @@ class ReportWidget {
                   child: const Text("Ver más")),
               TextButton(
                 // ignore: prefer_const_constructors
-                child: Text('Close'),
+                child: Text('Cerrar'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },

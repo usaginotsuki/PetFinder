@@ -53,6 +53,9 @@ class _FoundFormState extends State<FoundForm> {
   int currentStep = 0;
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
+
+  GoogleMapController? mapController; //contrller for Google map
+  int search_radius = 0; //search radius for nearby places
   Toasty toast = Toasty();
   //Step 1 checkers
 
@@ -92,6 +95,70 @@ class _FoundFormState extends State<FoundForm> {
       ),
       body: Center(
         child: Stepper(
+          controlsBuilder: (
+            context,
+            _,
+          ) {
+            return Row(
+              children: <Widget>[
+                Padding(padding: EdgeInsets.only(left: 70)),
+                TextButton(
+                    onPressed: () {
+                      if (currentStep == 0) {
+                        if (_mascotTypeSelected &&
+                            dateSelected &&
+                            imageSelected &&
+                            nameSelected) {
+                          currentStep = currentStep + 1;
+                        } else {
+                          toast.ToastError("Por favor completa los campos");
+                        }
+                      } else if (currentStep == 1) {
+                        if (placeSelected) {
+                          currentStep = currentStep + 1;
+                        } else {
+                          toast.ToastError("Por favor selecciona un lugar");
+                        }
+                      } else if (currentStep == 2) {
+                        if (sizeSelected && _formKey.currentState!.validate()) {
+                          //currentStep = currentStep + 1;
+                        } else {
+                          toast.ToastError("Por favor completa los campos");
+                        }
+                      }
+
+                      setState(() {});
+                    },
+                    child: const Text(
+                      'Siguiente',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all<Color>(Colors.blue),
+                    )),
+                Padding(padding: EdgeInsets.only(left: 50)),
+                TextButton(
+                    onPressed: () {
+                      setState(() {
+                        if (currentStep > 0) {
+                          currentStep = currentStep - 1;
+                        } else {
+                          currentStep = 0;
+                        }
+                      });
+                    },
+                    child: const Text(
+                      'Atras',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all<Color>(Colors.blue),
+                    )),
+              ],
+            );
+          },
           steps: getSteps(),
           type: StepperType.horizontal,
           currentStep: currentStep,
@@ -361,18 +428,6 @@ class _FoundFormState extends State<FoundForm> {
                     ),
                   )),
               Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    "Selecciona el lugar en el mapa11",
-                    style: TextStyle(color: Colors.black),
-                  )),
-              /*Container(
-                  child: mapPicker.MapLocationPicker(
-                borderRadius: BorderRadius.circular(),
-                apiKey: "AIzaSyASF-2-vcXOVoEiUL7_0QuXVCZBkICSlKU",
-                onNext: (mapPicker.GeocodingResult? result) {},
-              )),*/
-              Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: placeSelected
                     ? Container(
@@ -387,13 +442,36 @@ class _FoundFormState extends State<FoundForm> {
                           height: screenSize.size.height * 0.5,
                           width: screenSize.size.width * 0.8,
                           child: GoogleMap(
-                              onMapCreated: (GoogleMapController controller) {
+                              /*onMapCreated: (GoogleMapController controller) {
                                 if (!_controller.isCompleted) {
                                   _controller.complete(controller);
-                                } else {}
+                                  mapController = controller;
+                                } else {
+                                  dev.log("Controller completed");
+                                  //move camera to selected location
+                                }
+                              },*/
+                              onMapCreated: (controller) {
+                                //method called when map is created
+                                setState(() {
+                                  mapController = controller;
+                                });
                               },
-                              initialCameraPosition: CameraPosition(
-                                  target: _pickedLocation, zoom: 15),
+                              circles: Set.from(
+                                [
+                                  Circle(
+                                    circleId: CircleId('currentCircle'),
+                                    center: LatLng(_pickedLocation.latitude,
+                                        _pickedLocation.longitude),
+                                    radius: (search_radius.toDouble() / 2),
+                                    fillColor:
+                                        Colors.blue.shade100.withOpacity(0.5),
+                                    strokeColor:
+                                        Colors.blue.shade100.withOpacity(0.1),
+                                  ),
+                                ],
+                              ),
+                              initialCameraPosition: CameraPosition(target: _pickedLocation, zoom: 15),
                               markers: {
                                 Marker(
                                     markerId: MarkerId('1'),
@@ -582,12 +660,32 @@ class _FoundFormState extends State<FoundForm> {
                         placeSelected = true;
                         _pickedLocation = LatLng(cameraPosition.target.latitude,
                             cameraPosition.target.longitude);
-                        CameraUpdate cameraUpdate =
+                        setState(() {
+                          dev.log("Setting state");
+                          dev.log(date.toString());
+                          //calculate days since lost to now
+                          int days = DateTime.now().difference(date).inDays;
+                          //calculate search radius
+                          if (_mascotTypeValue == "dog") {
+                            if (days == 0) {
+                              days = 1;
+                            }
+                            search_radius = (days) * 100;
+                          }
+                          //search_radius = days * 100;
+
+                          mapController?.animateCamera(CameraUpdate.newLatLng(
+                              LatLng(cameraPosition.target.latitude,
+                                  cameraPosition.target.longitude)));
+                        });
+                        Navigator.pop(context);
+
+                        /*CameraUpdate cameraUpdate =
                             CameraUpdate.newLatLngZoom(_pickedLocation, 15);
                         _controller.future.then((value) {
                           value.animateCamera(cameraUpdate);
                           Navigator.pop(context);
-                        });
+                        });*/
                       },
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all<Color>(
@@ -603,20 +701,6 @@ class _FoundFormState extends State<FoundForm> {
                   ),
                 )
               ]))));
-
-      /*if (result.latLng != null) {
-        setState(() {
-          placeSelected = true;
-          _pickedLocation = result.latLng!;
-          CameraUpdate cameraUpdate =
-              CameraUpdate.newLatLngZoom(_pickedLocation, 15);
-          _controller.future.then((value) {
-            value.animateCamera(cameraUpdate);
-          });
-        });
-
-        // Handle the result in your way
-      }*/
     });
   }
 

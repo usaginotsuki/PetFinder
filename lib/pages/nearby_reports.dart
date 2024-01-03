@@ -7,6 +7,7 @@ import 'package:location/location.dart';
 import 'package:pet_finder/services/report.services.dart';
 import 'package:pet_finder/widgets/drawer.widget.dart';
 import 'package:pet_finder/widgets/report.widget.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import 'dart:developer' as dev;
 
 import '../models/report.model.dart';
@@ -79,7 +80,12 @@ class _NearbyReportsState extends State<NearbyReports> {
                       ),
                     ),
                     subtitle: Text(
-                      "A " + distance.toString() + " " + suffix,
+                      "A " +
+                          distance.toString() +
+                          " " +
+                          suffix +
+                          '\n' +
+                          getTimeSince(ListReport[index]),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                       ),
@@ -124,11 +130,27 @@ class _NearbyReportsState extends State<NearbyReports> {
         (event) {
           for (var report in event) {
             Report reporte = Report.fromDocument(report);
+            //get time from report until now
+            /*DateTime timeAgo = DateTime.now().subtract(
+                DateTime.now().difference(reporte.lastSeen! as DateTime));*/
+            //String timeAgoString = timeago.format(timeAgo, locale: 'es');
+            //timeAgoString = timeAgoString.replaceAll("hace", "Hace");
+            //dev.log(report as String);
+            //reporte.status = timeAgoString;
+
             ListReport.add(reporte);
             setState(() {});
           }
         },
       );
     });
+  }
+
+  getTimeSince(Report report) {
+    DateTime timeAgo = DateTime.now().subtract(DateTime.now().difference(
+        DateTime.fromMillisecondsSinceEpoch(report.lastSeen!.seconds * 1000)));
+    String timeAgoString = timeago.format(timeAgo, locale: 'es');
+    timeAgoString = timeAgoString.replaceAll("hace", "Hace");
+    return timeAgoString;
   }
 }
