@@ -63,7 +63,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ? Center(
                 child: CircularProgressIndicator(),
               )
-            : GoogleMap(
+            :
+        GoogleMap(
                 myLocationEnabled: true,
                 markers: _markers,
                 zoomControlsEnabled: false,
@@ -103,7 +104,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           builder: (context) => FoundForm(status: 'Visto')));
                 }),
           ],
-        ));
+        )
+
+    );
+
   }
 
   _getCurrentLocation() async {

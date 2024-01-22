@@ -74,51 +74,65 @@ class ReportWidget {
               ),
             ),
             actions: <Widget>[
-              userID == report.userId
-                  ? Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextButton(
-                          child: Text('Eliminar alerta'),
-                          onPressed: () {
-                            dev.log("Eliminar alerta");
-                            dev.log(report.id!);
+              Column(
+                children: [
+                  userID == report.userId
+                      ? TextButton(
+                      child: Text('Eliminar alerta'),
+                      onPressed: () {
+                        dev.log("Eliminar alerta");
+                        dev.log(report.id!);
 
-                            deleteAlert(context, report);
+                        deleteAlert(context, report);
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.red,
+                        disabledForegroundColor: Colors.grey,
+                      ))
+                      : TextButton(
+                      child: Text('Lo he visto'),
+                      onPressed: () {},
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Color.fromARGB(219, 54, 188, 121),
+                        disabledForegroundColor: Colors.grey,
+                      )),
+                  ButtonBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      /*
+                 */ TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.pink,
+                            disabledForegroundColor: Colors.grey,
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        ReportDetails(report: report)));
                           },
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            backgroundColor: Colors.red,
-                            disabledForegroundColor: Colors.grey,
-                          )),
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextButton(
-                          child: Text('Lo he visto'),
-                          onPressed: () {},
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            backgroundColor: Color.fromARGB(219, 54, 188, 121),
-                            disabledForegroundColor: Colors.grey,
-                          )),
-                    ),
-              TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                ReportDetails(report: report)));
-                  },
-                  child: const Text("Ver más")),
-              TextButton(
-                // ignore: prefer_const_constructors
-                child: Text('Cerrar'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
+                          child: const Text("Ver más")),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.blue,
+                          disabledForegroundColor: Colors.grey,
+                        ),
+                        child: const Text('Cerrar'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  )
+
+                ],
+              )
+              ],
           );
         });
   }

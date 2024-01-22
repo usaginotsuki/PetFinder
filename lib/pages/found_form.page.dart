@@ -12,9 +12,11 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
 import 'package:location_picker_flutter_map/location_picker_flutter_map.dart';
+import 'package:pet_finder/models/user.model.dart';
 import 'package:pet_finder/pages/homescreen.page.dart';
 import 'package:pet_finder/services/report.services.dart';
 import 'package:pet_finder/services/shared_prefs.services.dart';
+import 'package:pet_finder/services/user.services.dart';
 import 'package:pet_finder/widgets/drawer.widget.dart';
 import 'dart:developer' as dev;
 import 'package:select_form_field/select_form_field.dart';
@@ -101,15 +103,45 @@ class _FoundFormState extends State<FoundForm> {
           ) {
             return Row(
               children: <Widget>[
-                Padding(padding: EdgeInsets.only(left: 70)),
+                Padding(padding: EdgeInsets.only(left: 35)),
                 TextButton(
                     onPressed: () {
+                      setState(() {
+                        if (currentStep > 0) {
+                          currentStep = currentStep - 1;
+                        } else {
+                          currentStep = 0;
+                        }
+                      });
+                    },
+
+                    child: const Text(
+                      'Atras',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    style: ButtonStyle(
+                      minimumSize: MaterialStateProperty.all(Size(100, 50)),
+                      backgroundColor:
+                      MaterialStateProperty.all<Color>(Colors.blue),
+                    )),
+                Padding(padding: EdgeInsets.only(left: 70)),
+                TextButton(
+                    onPressed: () async {
                       if (currentStep == 0) {
+                        widget.status == "Perdido"
+                            ? dev.log("Perdido")
+                            : dev.log("Visto");
+
                         if (_mascotTypeSelected &&
                             dateSelected &&
-                            imageSelected &&
-                            nameSelected) {
-                          currentStep = currentStep + 1;
+                            imageSelected) {
+                          if (widget.status == "Perdido" && nameSelected) {
+                            currentStep = currentStep + 1;
+                          } else if (widget.status != "Perdido") {
+                            currentStep = currentStep + 1;
+                          } else {
+                            toast.ToastError("Por favor completa los campos");
+                          }
                         } else {
                           toast.ToastError("Por favor completa los campos");
                         }
@@ -121,10 +153,23 @@ class _FoundFormState extends State<FoundForm> {
                         }
                       } else if (currentStep == 2) {
                         if (sizeSelected && _formKey.currentState!.validate()) {
-                          //currentStep = currentStep + 1;
+                          if (currentStep == 2 &&
+                              sizeSelected &&
+                              _formKey.currentState!.validate()) {
+                            dev.log("Saving report");
+                            saveNewReport();
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Completa todos los campos para poder publicar'),
+                              ),
+                            );
+                          }
                         } else {
                           toast.ToastError("Por favor completa los campos");
                         }
+
                       }
 
                       setState(() {});
@@ -134,27 +179,9 @@ class _FoundFormState extends State<FoundForm> {
                       style: TextStyle(color: Colors.white),
                     ),
                     style: ButtonStyle(
+                      minimumSize: MaterialStateProperty.all(Size(100, 50)),
                       backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.blue),
-                    )),
-                Padding(padding: EdgeInsets.only(left: 50)),
-                TextButton(
-                    onPressed: () {
-                      setState(() {
-                        if (currentStep > 0) {
-                          currentStep = currentStep - 1;
-                        } else {
-                          currentStep = 0;
-                        }
-                      });
-                    },
-                    child: const Text(
-                      'Atras',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.blue),
+                      MaterialStateProperty.all<Color>(Colors.green),
                     )),
               ],
             );
@@ -165,46 +192,6 @@ class _FoundFormState extends State<FoundForm> {
           onStepTapped: (step) {
             setState(() {
               currentStep = step;
-            });
-          },
-          onStepContinue: () {
-            if (currentStep == 0) {
-              if (_mascotTypeSelected &&
-                  dateSelected &&
-                  imageSelected &&
-                  nameSelected) {
-                currentStep = currentStep + 1;
-              } else {
-                toast.ToastError("Por favor completa los campos");
-              }
-            } else if (currentStep == 1) {
-              if (placeSelected) {
-                currentStep = currentStep + 1;
-              } else {
-                toast.ToastError("Por favor selecciona un lugar");
-              }
-            } else if (currentStep == 2) {
-              if (sizeSelected && _formKey.currentState!.validate()) {
-                //currentStep = currentStep + 1;
-              } else {
-                toast.ToastError("Por favor completa los campos");
-              }
-            }
-
-            setState(() {});
-            /*if (currentStep < getSteps().length - 1) {
-                currentStep = currentStep + 1;
-              } else {
-                currentStep = 0;
-              }*/
-          },
-          onStepCancel: () {
-            setState(() {
-              if (currentStep > 0) {
-                currentStep = currentStep - 1;
-              } else {
-                currentStep = 0;
-              }
             });
           },
         ),
@@ -228,30 +215,32 @@ class _FoundFormState extends State<FoundForm> {
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
                 child: Column(
                   children: [
-                    TextFormField(
-                      controller: name,
-                      decoration: InputDecoration(
-                        labelText: "Ingresa tu nombre",
-                        hintText: "Nombre",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor ingresa una descripción';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        if (value.length > 1 && value.isNotEmpty) {
-                          setState(() {
-                            nameSelected = true;
-                          });
-                        }
-                      },
-                    ),
-                    Padding(padding: EdgeInsets.only(top: 20)),
+                    widget.status == "Perdido"
+                        ? TextFormField(
+                            controller: name,
+                            decoration: InputDecoration(
+                              labelText: "Ingresa el nombre de tu mascota",
+                              hintText: "Nombre",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor ingresa una descripción';
+                              }
+                              return null;
+                            },
+                            onChanged: (value) {
+                              if (value.length > 1 && value.isNotEmpty) {
+                                setState(() {
+                                  nameSelected = true;
+                                });
+                              }
+                            },
+                          )
+                        : Container(),
+                    Padding(padding: EdgeInsets.only(top: 10)),
                     SelectFormField(
                       decoration: InputDecoration(
                         labelText: "Que tipo de mascota es?",
@@ -388,6 +377,7 @@ class _FoundFormState extends State<FoundForm> {
                     ),
                     const Padding(padding: EdgeInsets.only(top: 20)),
                     Container(
+                      padding: const EdgeInsets.only(bottom: 20),
                       child: imageSelected
                           ? Image.file(
                               _image,
@@ -396,7 +386,8 @@ class _FoundFormState extends State<FoundForm> {
                               fit: BoxFit.cover,
                             )
                           : Text(''),
-                    )
+                    ),
+
                   ],
                 ),
               ),
@@ -418,8 +409,8 @@ class _FoundFormState extends State<FoundForm> {
                     },
                     child: Text(
                       widget.status == "Visto"
-                          ? "Donde lo viste  ?"
-                          : "Donde desapareció?",
+                          ? !placeSelected ?  "Donde lo viste?" : "Cambiar de lugar "
+                          : !placeSelected ?  "Donde desapareció?" : "Cambiar de lugar " ,
                       style: TextStyle(color: Colors.white),
                     ),
                     style: ButtonStyle(
@@ -428,19 +419,20 @@ class _FoundFormState extends State<FoundForm> {
                     ),
                   )),
               Padding(
-                padding: const EdgeInsets.only(top: 20),
+                padding: const EdgeInsets.only(top: 20, bottom: 20),
                 child: placeSelected
                     ? Container(
+
                         decoration: BoxDecoration(
                           border: Border.all(
                             color: Colors.black,
-                            width: 3,
+                            width: 1.25,
                           ),
-                          borderRadius: BorderRadius.circular(5),
+                          borderRadius: BorderRadius.circular(2),
                         ),
                         child: SizedBox(
                           height: screenSize.size.height * 0.5,
-                          width: screenSize.size.width * 0.8,
+                          width: screenSize.size.width *0.99 ,
                           child: GoogleMap(
                               /*onMapCreated: (GoogleMapController controller) {
                                 if (!_controller.isCompleted) {
@@ -515,8 +507,9 @@ class _FoundFormState extends State<FoundForm> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 50),
                       child: Container(
+
                         decoration: BoxDecoration(
                           border: Border.all(
                             color: Colors.black,
@@ -529,6 +522,11 @@ class _FoundFormState extends State<FoundForm> {
                           maxLines: 5,
                           controller: description,
                           decoration: const InputDecoration(
+                            border: OutlineInputBorder(
+                              borderRadius: const BorderRadius.all(
+                                const Radius.circular(5.0),
+                              ),
+                            ),
                             labelText: ' Añade información adicional',
                           ),
                           validator: (value) {
@@ -541,34 +539,7 @@ class _FoundFormState extends State<FoundForm> {
                       ),
                     ),
                   ])),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: TextButton(
-                  onPressed: () {
-                    if (currentStep == 2 &&
-                        sizeSelected &&
-                        _formKey.currentState!.validate()) {
-                      dev.log("Saving report");
-                      saveNewReport();
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              'Completa todos los campos para poder publicar'),
-                        ),
-                      );
-                    }
-                  },
-                  child: const Text(
-                    'Publicar',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(Colors.blue),
-                  ),
-                ),
-              ),
+
             ],
           ),
         ),
@@ -718,7 +689,19 @@ class _FoundFormState extends State<FoundForm> {
       var loc = Position(location.hash, location.geoPoint);
       Timestamp timeStamp = Timestamp.fromDate(date);
       var userID = await prefs.getUserID();
+      UserServices user = UserServices();
+
       dev.log(loc.toString());
+
+      if (widget.status == "Visto") {
+        //get username from database
+        UserData username = await user.getUser(userID!);
+        dev.log(username.toString());
+        dev.log(username.name!);
+        //name.text = username.name!.toString();
+        name.text = 'Test';
+      }
+
       Report report = Report(
           "",
           _mascotTypeValue,
