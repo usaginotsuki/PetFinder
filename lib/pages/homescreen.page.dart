@@ -14,6 +14,7 @@ import 'package:pet_finder/services/user.services.dart';
 import 'package:pet_finder/widgets/drawer.widget.dart';
 import 'package:pet_finder/widgets/report.widget.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:custom_info_window/custom_info_window.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -63,8 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ? Center(
                 child: CircularProgressIndicator(),
               )
-            :
-        GoogleMap(
+            : GoogleMap(
                 myLocationEnabled: true,
                 markers: _markers,
                 zoomControlsEnabled: false,
@@ -104,10 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           builder: (context) => FoundForm(status: 'Visto')));
                 }),
           ],
-        )
-
-    );
-
+        ));
   }
 
   _getCurrentLocation() async {
@@ -158,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   _addMarker() async {
-    var reportList = await reportServices.getReports();
+    var reportList = await reportServices.getReports(10);
     //dev.log(phoneVerified.toString());
     reportList.forEach((element) async {
       var date =
@@ -178,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (opacity < 0.1) {
           opacity = 0.1;
         }
-        if (difference.inDays > 6) {
+        if (difference.inDays > 15) {
           opacity = 0.0;
         }
       }

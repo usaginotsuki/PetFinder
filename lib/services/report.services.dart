@@ -5,7 +5,7 @@ import 'package:geoflutterfire2/geoflutterfire2.dart';
 import '../models/report.model.dart';
 
 class ReportServices {
-  Future<List<Report>> getReports() async {
+  Future<List<Report>> getReports(int days) async {
     List<Report> ListReport = [];
 
     CollectionReference reports =
@@ -13,7 +13,7 @@ class ReportServices {
 
     var reportList = await reports
         .where('lastSeen',
-            isGreaterThan: DateTime.now().subtract(Duration(days: 7)))
+            isGreaterThan: DateTime.now().subtract(Duration(days: days)))
         .get();
     reportList.docs.forEach((element) {
       ListReport.add(Report.fromDocument(element));

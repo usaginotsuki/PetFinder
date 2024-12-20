@@ -57,94 +57,114 @@ class _ReportDetailsState extends State<ReportDetails> {
             child: CircularProgressIndicator(),
           )
         : Scaffold(
+            backgroundColor: Colors.grey.shade200,
             drawer: drawerMenu(context),
             appBar: AppBar(
               title: const Text("Detalles de la alerta"),
               toolbarOpacity: 0.8,
             ),
             body: SingleChildScrollView(
-              child: Center(
-                child: Column(
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 5),
-                    ),
-                    Text(reporte.details!,
-                        style:
-                            const TextStyle(fontSize: 35, color: Colors.blue)),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                    ),
-                    Text("Estado: ${reporte.status}",
-                        style: TextStyle(
-                          fontSize: 30,
-                          color: reporte.status == "Perdido"
-                              ? Colors.red
-                              : Colors.green,
-                        )),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                    ),
-                    GestureDetector(
-                        onTap: () {
-                          showImageViewer(
-                              context, Image.network(reporte.photoUrl!).image,
-                              swipeDismissible: false);
-                        },
-                        child: Image.network(reporte.photoUrl!)),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                    ),
-                    Text("Alerta creada: ${dateString.toString()} ",
-                        style: const TextStyle(
-                          fontSize: 20,
-                          color: Colors.blue,
-                        )),
-                    Text(
-                      "${hourString.toString()} ",
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.black,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Center(
+                  child: Column(
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 5),
                       ),
-                    ),
-                    const Padding(padding: EdgeInsets.symmetric(vertical: 10)),
-                    Text("${timeAgoString.toString()} ",
-                        style: const TextStyle(
-                          fontSize: 20,
-                          color: Colors.black,
-                        )),
-                    const Padding(padding: EdgeInsets.symmetric(vertical: 10)),
-                    const Text("Historial de alertas",
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.black,
-                        )),
-                    Container(
-                      decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black, width: 2)),
-                      child: SizedBox(
-                        height: screenSize.size.height * 0.3,
-                        width: screenSize.size.width * 0.9,
-                        child: GoogleMap(
-                          myLocationEnabled: true,
-                          markers: _markers,
-                          mapType: MapType.normal,
-                          initialCameraPosition: CameraPosition(
-                              target: LatLng(_locationData.latitude ?? 0.00,
-                                  _locationData.longitude ?? 0.0),
-                              zoom: 14),
-                          onMapCreated: (GoogleMapController controller) {
-                            _controller.complete(controller);
-                          },
-                          gestureRecognizers: {
-                            Factory<OneSequenceGestureRecognizer>(
-                                () => EagerGestureRecognizer())
-                          },
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Center(
+                            child: Text(reporte.details!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.bold,
+                                )),
+                          ),
                         ),
                       ),
-                    ),
-                    const Padding(padding: EdgeInsets.symmetric(vertical: 10)),
-                  ],
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 5),
+                      ),
+                      Card(
+                        color: reporte.status == "Perdido"
+                            ? Colors.red.shade100
+                            : Colors.green.shade100,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text("Estado: ${reporte.status}",
+                              style: TextStyle(
+                                fontSize: 30,
+                                color: reporte.status == "Perdido"
+                                    ? Colors.red
+                                    : Colors.green,
+                              )),
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 5),
+                      ),
+                      Text(
+                          "Alerta creada: ${dateString.toString()} a las ${hourString.toString()} ",
+                          style: const TextStyle(
+                            fontSize: 20,
+                            color: Colors.black,
+                          )),
+                      Text("${timeAgoString.toString()}",
+                          style: const TextStyle(
+                            fontSize: 20,
+                            color: Colors.black,
+                          )),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                      ),
+                      GestureDetector(
+                          onTap: () {
+                            showImageViewer(
+                                context, Image.network(reporte.photoUrl!).image,
+                                swipeDismissible: false);
+                          },
+                          child: Image.network(reporte.photoUrl!)),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                      ),
+                      const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10)),
+                      const Text("Historial de alertas",
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.black,
+                          )),
+                      Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black, width: 2)),
+                        child: SizedBox(
+                          height: screenSize.size.height * 0.3,
+                          width: screenSize.size.width * 0.9,
+                          child: GoogleMap(
+                            myLocationEnabled: true,
+                            markers: _markers,
+                            mapType: MapType.normal,
+                            initialCameraPosition: CameraPosition(
+                                target: LatLng(_locationData.latitude ?? 0.00,
+                                    _locationData.longitude ?? 0.0),
+                                zoom: 14),
+                            onMapCreated: (GoogleMapController controller) {
+                              _controller.complete(controller);
+                            },
+                            gestureRecognizers: {
+                              Factory<OneSequenceGestureRecognizer>(
+                                  () => EagerGestureRecognizer())
+                            },
+                          ),
+                        ),
+                      ),
+                      const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10)),
+                    ],
+                  ),
                 ),
               ),
             ));

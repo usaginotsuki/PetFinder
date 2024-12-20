@@ -67,6 +67,7 @@ dependencies:
   map_location_picker: ^1.2.1
   map_picker: ^0.0.3
   google_fonts: ^4.0.4
+  custom_info_window: ^1.0.1
 
  
 
